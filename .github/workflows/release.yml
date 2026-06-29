@@ -1,0 +1,51 @@
+name: Release GG Nameforge
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Inject version and download URL into module.json
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const m = JSON.parse(fs.readFileSync('module.json', 'utf8'));
+          m.version  = process.env.VERSION;
+          m.download = `https://github.com/${process.env.REPO}/releases/download/${process.env.TAG}/gg-nameforge-${process.env.TAG}.zip`;
+          m.manifest = `https://github.com/${process.env.REPO}/releases/latest/download/module.json`;
+          fs.writeFileSync('module.json', JSON.stringify(m, null, 2));
+          NODE
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+
+      - name: Build module archive
+        run: |
+          mkdir -p build/gg-nameforge
+          cp -r module.json README.md scripts templates styles lang build/gg-nameforge/
+          cd build
+          zip -rq "../gg-nameforge-${{ github.ref_name }}.zip" gg-nameforge
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: GG Nameforge ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            module.json
+            gg-nameforge-${{ github.ref_name }}.zip

@@ -1,0 +1,139 @@
+/* ============================================
+   GG Nameforge — by Geges
+   Shares the brass-and-ink identity of GG Calendar.
+   ============================================ */
+
+.gg-nameforge {
+  --ggnf-brass: #c9a45c;
+  --ggnf-brass-dim: #8a7340;
+  --ggnf-ink: #e8e2d5;
+  --ggnf-ink-dim: #9b958a;
+  --ggnf-panel: rgba(20, 18, 14, 0.55);
+  --ggnf-line: rgba(201, 164, 92, 0.25);
+}
+
+.gg-nameforge .ggnf-root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  color: var(--ggnf-ink);
+  font-family: var(--font-primary, "Signika", sans-serif);
+}
+
+/* Tabs */
+.gg-nameforge .ggnf-tabs { display: flex; gap: 4px; }
+.gg-nameforge .ggnf-tab {
+  flex: 1;
+  padding: 6px 0;
+  background: transparent;
+  border: 1px solid var(--ggnf-line);
+  border-radius: 4px;
+  color: var(--ggnf-ink-dim);
+  cursor: pointer;
+  font-size: 0.85em;
+}
+.gg-nameforge .ggnf-tab.active {
+  color: var(--ggnf-brass);
+  border-color: var(--ggnf-brass);
+  background: rgba(201, 164, 92, 0.08);
+}
+
+/* Controls */
+.gg-nameforge .ggnf-controls { display: flex; gap: 6px; }
+.gg-nameforge .ggnf-field { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.gg-nameforge .ggnf-field-wide { flex: 1 1 100%; }
+.gg-nameforge .ggnf-field label {
+  font-size: 0.68em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ggnf-ink-dim);
+}
+.gg-nameforge .ggnf-field select {
+  background: var(--ggnf-panel);
+  border: 1px solid var(--ggnf-line);
+  border-radius: 4px;
+  color: var(--ggnf-ink);
+  padding: 3px 6px;
+  font-size: 0.85em;
+}
+
+/* Action bar */
+.gg-nameforge .ggnf-actionbar { display: flex; gap: 6px; align-items: stretch; }
+.gg-nameforge .ggnf-generate {
+  flex: 1;
+  padding: 8px;
+  background: linear-gradient(180deg, rgba(201,164,92,0.18), rgba(201,164,92,0.06));
+  border: 1px solid var(--ggnf-brass-dim);
+  border-radius: 4px;
+  color: var(--ggnf-brass);
+  font-weight: 700;
+  font-size: 0.92em;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+}
+.gg-nameforge .ggnf-generate:hover { border-color: var(--ggnf-brass); background: rgba(201,164,92,0.22); }
+.gg-nameforge .ggnf-viewtoggle { display: flex; gap: 2px; }
+.gg-nameforge .ggnf-viewtoggle button {
+  width: 30px;
+  background: transparent;
+  border: 1px solid var(--ggnf-line);
+  border-radius: 4px;
+  color: var(--ggnf-ink-dim);
+  cursor: pointer;
+}
+.gg-nameforge .ggnf-viewtoggle button.active { color: var(--ggnf-brass); border-color: var(--ggnf-brass); }
+
+/* Results */
+.gg-nameforge .ggnf-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.gg-nameforge .ggnf-single .ggnf-card { padding: 14px 12px; }
+.gg-nameforge .ggnf-single .ggnf-name { font-size: 1.25em; }
+
+.gg-nameforge .ggnf-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--ggnf-panel);
+  border: 1px solid var(--ggnf-line);
+  border-radius: 5px;
+}
+.gg-nameforge .ggnf-card-main { min-width: 0; flex: 1; }
+.gg-nameforge .ggnf-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 700;
+  color: var(--ggnf-ink);
+}
+.gg-nameforge .ggnf-gender, .gg-nameforge .ggnf-itemicon { color: var(--ggnf-brass); font-size: 0.85em; }
+.gg-nameforge .ggnf-subtitle { font-size: 0.74em; color: var(--ggnf-ink-dim); margin-top: 2px; text-transform: capitalize; }
+.gg-nameforge .ggnf-trait { font-size: 0.78em; color: var(--ggnf-ink-dim); font-style: italic; margin-top: 3px; }
+
+.gg-nameforge .ggnf-card-actions { display: flex; gap: 4px; flex: 0 0 auto; }
+.gg-nameforge .ggnf-card-actions button {
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: 1px solid var(--ggnf-line);
+  border-radius: 4px;
+  color: var(--ggnf-ink);
+  cursor: pointer;
+}
+.gg-nameforge .ggnf-card-actions button:hover { border-color: var(--ggnf-brass); color: var(--ggnf-brass); }
+
+.gg-nameforge .ggnf-brand {
+  text-align: center;
+  font-size: 0.62em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ggnf-ink-dim);
+  opacity: 0.6;
+}

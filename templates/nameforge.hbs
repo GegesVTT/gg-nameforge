@@ -1,0 +1,75 @@
+<div class="ggnf-root">
+
+  {{!-- Mode tabs --}}
+  <div class="ggnf-tabs">
+    <button type="button" class="ggnf-tab {{#if isNPC}}active{{/if}}" data-action="setMode" data-value="npc">
+      <i class="fa-solid fa-user"></i> {{localize "GGNF.Tab.NPC"}}
+    </button>
+    <button type="button" class="ggnf-tab {{#unless isNPC}}active{{/unless}}" data-action="setMode" data-value="item">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> {{localize "GGNF.Tab.Item"}}
+    </button>
+  </div>
+
+  {{!-- Controls --}}
+  <div class="ggnf-controls">
+    {{#if isNPC}}
+      <div class="ggnf-field">
+        <label>{{localize "GGNF.Field.Race"}}</label>
+        <select name="race">
+          <option value="random">{{localize "GGNF.Race.random"}}</option>
+          {{#each races}}<option value="{{this.key}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+        </select>
+      </div>
+      <div class="ggnf-field">
+        <label>{{localize "GGNF.Field.Gender"}}</label>
+        <select name="gender">
+          {{#each genders}}<option value="{{this.key}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+        </select>
+      </div>
+    {{else}}
+      <div class="ggnf-field ggnf-field-wide">
+        <label>{{localize "GGNF.Field.ItemType"}}</label>
+        <select name="itemType">
+          {{#each itemTypes}}<option value="{{this.key}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+        </select>
+      </div>
+    {{/if}}
+  </div>
+
+  {{!-- Generate + view toggle --}}
+  <div class="ggnf-actionbar">
+    <button type="button" class="ggnf-generate" data-action="generate">
+      <i class="fa-solid fa-dice-d20"></i> {{localize "GGNF.Generate"}}
+    </button>
+    <div class="ggnf-viewtoggle">
+      <button type="button" class="{{#if single}}active{{/if}}" data-action="setView" data-value="single" title="{{localize "GGNF.View.Single"}}"><i class="fa-solid fa-square"></i></button>
+      <button type="button" class="{{#unless single}}active{{/unless}}" data-action="setView" data-value="list" title="{{localize "GGNF.View.List"}}"><i class="fa-solid fa-list"></i></button>
+    </div>
+  </div>
+
+  {{!-- Results --}}
+  <div class="ggnf-results {{#if single}}ggnf-single{{/if}}">
+    {{#each results}}
+      <div class="ggnf-card">
+        <div class="ggnf-card-main">
+          <div class="ggnf-name">
+            {{#if ../isNPC}}<i class="fa-solid {{this.genderIcon}} ggnf-gender"></i>{{else}}<i class="fa-solid {{this.icon}} ggnf-itemicon"></i>{{/if}}
+            <span>{{this.name}}</span>
+          </div>
+          <div class="ggnf-subtitle">{{this.subtitle}}</div>
+          {{#if ../isNPC}}<div class="ggnf-trait">"{{this.traitLabel}}"</div>{{else}}<div class="ggnf-trait">{{this.flavor}}</div>{{/if}}
+        </div>
+        <div class="ggnf-card-actions">
+          <button type="button" data-action="copyName" data-index="{{@index}}" title="{{localize "GGNF.Copy"}}"><i class="fa-solid fa-copy"></i></button>
+          {{#if ../isNPC}}
+            <button type="button" data-action="createActor" data-index="{{@index}}" title="{{localize "GGNF.CreateActor"}}"><i class="fa-solid fa-user-plus"></i></button>
+          {{else}}
+            <button type="button" data-action="createItem" data-index="{{@index}}" title="{{localize "GGNF.CreateItem"}}"><i class="fa-solid fa-plus"></i></button>
+          {{/if}}
+        </div>
+      </div>
+    {{/each}}
+  </div>
+
+  <div class="ggnf-brand">GG Nameforge · Geges</div>
+</div>
