@@ -5,18 +5,21 @@
     <button type="button" class="ggnf-tab {{#if isNPC}}active{{/if}}" data-action="setMode" data-value="npc">
       <i class="fa-solid fa-user"></i> {{localize "GGNF.Tab.NPC"}}
     </button>
-    <button type="button" class="ggnf-tab {{#unless isNPC}}active{{/unless}}" data-action="setMode" data-value="item">
+    <button type="button" class="ggnf-tab {{#if isItem}}active{{/if}}" data-action="setMode" data-value="item">
       <i class="fa-solid fa-wand-magic-sparkles"></i> {{localize "GGNF.Tab.Item"}}
+    </button>
+    <button type="button" class="ggnf-tab ggnf-tab-fav {{#if isFav}}active{{/if}}" data-action="setMode" data-value="favorites" title="{{localize "GGNF.Tab.Favorites"}}">
+      <i class="fa-solid fa-star"></i>{{#if favCount}} <span class="ggnf-favcount">{{favCount}}</span>{{/if}}
     </button>
   </div>
 
+  {{#unless isFav}}
   {{!-- Controls --}}
   <div class="ggnf-controls">
     {{#if isNPC}}
       <div class="ggnf-field">
         <label>{{localize "GGNF.Field.Race"}}</label>
         <select name="race">
-          <option value="random">{{localize "GGNF.Race.random"}}</option>
           {{#each races}}<option value="{{this.key}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
         </select>
       </div>
@@ -24,6 +27,12 @@
         <label>{{localize "GGNF.Field.Gender"}}</label>
         <select name="gender">
           {{#each genders}}<option value="{{this.key}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+        </select>
+      </div>
+      <div class="ggnf-field ggnf-field-wide">
+        <label>{{localize "GGNF.Field.Threat"}}</label>
+        <select name="threat">
+          {{#each threats}}<option value="{{this.key}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
         </select>
       </div>
     {{else}}
@@ -46,28 +55,42 @@
       <button type="button" class="{{#unless single}}active{{/unless}}" data-action="setView" data-value="list" title="{{localize "GGNF.View.List"}}"><i class="fa-solid fa-list"></i></button>
     </div>
   </div>
+  {{/unless}}
 
   {{!-- Results --}}
-  <div class="ggnf-results {{#if single}}ggnf-single{{/if}}">
+  <div class="ggnf-results {{#if single}}{{#unless isFav}}ggnf-single{{/unless}}{{/if}}">
     {{#each results}}
-      <div class="ggnf-card">
+      <div class="ggnf-card {{#unless this.isNPCCard}}{{this.rarityClass}}{{/unless}}">
+        <div class="ggnf-card-icon">
+          {{#if this.isNPCCard}}<i class="fa-solid {{this.genderIcon}}"></i>{{else}}<i class="{{this.icon}}"></i>{{/if}}
+        </div>
         <div class="ggnf-card-main">
-          <div class="ggnf-name">
-            {{#if ../isNPC}}<i class="fa-solid {{this.genderIcon}} ggnf-gender"></i>{{else}}<i class="fa-solid {{this.icon}} ggnf-itemicon"></i>{{/if}}
-            <span>{{this.name}}</span>
-          </div>
+          <div class="ggnf-name">{{this.name}}</div>
           <div class="ggnf-subtitle">{{this.subtitle}}</div>
-          {{#if ../isNPC}}<div class="ggnf-trait">"{{this.traitLabel}}"</div>{{else}}<div class="ggnf-trait">{{this.flavor}}</div>{{/if}}
+          {{#if this.isNPCCard}}
+            <div class="ggnf-trait">"{{this.traitText}}"</div>
+          {{else}}
+            <div class="ggnf-trait">{{this.flavorText}}</div>
+          {{/if}}
         </div>
         <div class="ggnf-card-actions">
-          <button type="button" data-action="copyName" data-index="{{@index}}" title="{{localize "GGNF.Copy"}}"><i class="fa-solid fa-copy"></i></button>
-          {{#if ../isNPC}}
-            <button type="button" data-action="createActor" data-index="{{@index}}" title="{{localize "GGNF.CreateActor"}}"><i class="fa-solid fa-user-plus"></i></button>
+          {{#if ../isFav}}
+            <button type="button" data-action="unfavorite" data-index="{{this.index}}" title="{{localize "GGNF.Unfavorite"}}"><i class="fa-solid fa-star"></i></button>
           {{else}}
-            <button type="button" data-action="createItem" data-index="{{@index}}" title="{{localize "GGNF.CreateItem"}}"><i class="fa-solid fa-plus"></i></button>
+            <button type="button" data-action="favorite" data-index="{{this.index}}" title="{{localize "GGNF.Favorite"}}"><i class="fa-regular fa-star"></i></button>
+          {{/if}}
+          <button type="button" data-action="copyName" data-index="{{this.index}}" title="{{localize "GGNF.Copy"}}"><i class="fa-solid fa-copy"></i></button>
+          {{#if this.isNPCCard}}
+            <button type="button" data-action="createActor" data-index="{{this.index}}" title="{{localize "GGNF.CreateActor"}}"><i class="fa-solid fa-user-plus"></i></button>
+          {{else}}
+            <button type="button" data-action="createItem" data-index="{{this.index}}" title="{{localize "GGNF.CreateItem"}}"><i class="fa-solid fa-plus"></i></button>
           {{/if}}
         </div>
       </div>
+    {{else}}
+      {{#if ../isFav}}
+        <div class="ggnf-empty"><i class="fa-regular fa-star"></i> {{localize "GGNF.NoFavorites"}}</div>
+      {{/if}}
     {{/each}}
   </div>
 

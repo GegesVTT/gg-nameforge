@@ -1,139 +1,243 @@
-/* ============================================
-   GG Nameforge — by Geges
-   Shares the brass-and-ink identity of GG Calendar.
-   ============================================ */
+/* ============================================================
+   GG Nameforge — by Geges (GegesVTT)
+   Estilo "Doble filo" · Paleta Crónicas Bárdicas 2026
+   Inspirado en el lenguaje visual de fichas tipo D&D Beyond:
+   marcos biselados, borde doble grabado, acentos en esquina.
+   ============================================================ */
 
 .gg-nameforge {
-  --ggnf-brass: #c9a45c;
-  --ggnf-brass-dim: #8a7340;
-  --ggnf-ink: #e8e2d5;
-  --ggnf-ink-dim: #9b958a;
-  --ggnf-panel: rgba(20, 18, 14, 0.55);
-  --ggnf-line: rgba(201, 164, 92, 0.25);
+  --ggnf-gold:        #CBA45A;
+  --ggnf-gold-bright: #EAD49A;
+  --ggnf-gold-dim:    #8A682A;
+  --ggnf-gold-line:   #4A3D28;
+  --ggnf-flame:       #E0673E;
+  --ggnf-black:       #0A0A0C;
+  --ggnf-panel:       #100F0B;
+
+  /* Biseles reutilizables */
+  --bevel-sm: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  --bevel-md: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+
+  font-family: "Trebuchet MS", var(--font-primary, "Signika"), sans-serif;
 }
+
+/* Ventana: fondo negro real para que el bisel respire */
+.gg-nameforge .window-content { background: var(--ggnf-black); }
 
 .gg-nameforge .ggnf-root {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-  color: var(--ggnf-ink);
-  font-family: var(--font-primary, "Signika", sans-serif);
+  gap: 10px;
+  padding: 10px;
+  background: var(--ggnf-black);
+  color: var(--ggnf-gold-bright);
 }
 
-/* Tabs */
-.gg-nameforge .ggnf-tabs { display: flex; gap: 4px; }
+/* ── Pestañas ─────────────────────────────────────────────── */
+.gg-nameforge .ggnf-tabs { display: flex; gap: 5px; }
 .gg-nameforge .ggnf-tab {
   flex: 1;
-  padding: 6px 0;
-  background: transparent;
-  border: 1px solid var(--ggnf-line);
-  border-radius: 4px;
-  color: var(--ggnf-ink-dim);
+  padding: 7px 0;
+  background: var(--ggnf-panel);
+  border: 1px solid var(--ggnf-gold-line);
+  clip-path: var(--bevel-sm);
+  color: var(--ggnf-gold-dim);
   cursor: pointer;
+  font-size: 0.78em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: bold;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.gg-nameforge .ggnf-tab:hover { color: var(--ggnf-gold); border-color: var(--ggnf-gold-dim); }
+.gg-nameforge .ggnf-tab.active {
+  color: var(--ggnf-black);
+  background: var(--ggnf-gold);
+  border-color: var(--ggnf-gold);
+}
+.gg-nameforge .ggnf-tab-fav { flex: 0 0 52px; }
+.gg-nameforge .ggnf-favcount {
+  display: inline-block;
+  min-width: 14px;
   font-size: 0.85em;
 }
-.gg-nameforge .ggnf-tab.active {
-  color: var(--ggnf-brass);
-  border-color: var(--ggnf-brass);
-  background: rgba(201, 164, 92, 0.08);
-}
 
-/* Controls */
-.gg-nameforge .ggnf-controls { display: flex; gap: 6px; }
-.gg-nameforge .ggnf-field { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+/* ── Controles ────────────────────────────────────────────── */
+.gg-nameforge .ggnf-controls { display: flex; gap: 6px; flex-wrap: wrap; }
+.gg-nameforge .ggnf-field { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 110px; }
 .gg-nameforge .ggnf-field-wide { flex: 1 1 100%; }
 .gg-nameforge .ggnf-field label {
-  font-size: 0.68em;
+  font-size: 0.64em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--ggnf-ink-dim);
+  letter-spacing: 0.12em;
+  color: var(--ggnf-gold-dim);
+  font-weight: bold;
 }
 .gg-nameforge .ggnf-field select {
-  background: var(--ggnf-panel);
-  border: 1px solid var(--ggnf-line);
-  border-radius: 4px;
-  color: var(--ggnf-ink);
-  padding: 3px 6px;
+  background: var(--ggnf-black);
+  border: 1px solid var(--ggnf-gold-line);
+  box-shadow: inset 0 0 0 2px var(--ggnf-black), 0 0 0 1px rgba(203,164,90,0.15);
+  color: var(--ggnf-gold-bright);
+  padding: 5px 7px;
   font-size: 0.85em;
+  transition: border-color 0.15s;
+}
+.gg-nameforge .ggnf-field select:focus {
+  outline: none;
+  border-color: var(--ggnf-gold);
 }
 
-/* Action bar */
+/* ── Barra de acción ──────────────────────────────────────── */
 .gg-nameforge .ggnf-actionbar { display: flex; gap: 6px; align-items: stretch; }
 .gg-nameforge .ggnf-generate {
   flex: 1;
-  padding: 8px;
-  background: linear-gradient(180deg, rgba(201,164,92,0.18), rgba(201,164,92,0.06));
-  border: 1px solid var(--ggnf-brass-dim);
-  border-radius: 4px;
-  color: var(--ggnf-brass);
-  font-weight: 700;
-  font-size: 0.92em;
+  padding: 10px;
+  background: linear-gradient(180deg, #D9B46A, #B08D44);
+  border: none;
+  box-shadow: inset 0 0 0 1px var(--ggnf-gold-bright);
+  color: var(--ggnf-black);
+  font-weight: bold;
+  font-size: 0.9em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   cursor: pointer;
-  letter-spacing: 0.03em;
+  transition: filter 0.15s;
 }
-.gg-nameforge .ggnf-generate:hover { border-color: var(--ggnf-brass); background: rgba(201,164,92,0.22); }
-.gg-nameforge .ggnf-viewtoggle { display: flex; gap: 2px; }
-.gg-nameforge .ggnf-viewtoggle button {
-  width: 30px;
-  background: transparent;
-  border: 1px solid var(--ggnf-line);
-  border-radius: 4px;
-  color: var(--ggnf-ink-dim);
-  cursor: pointer;
-}
-.gg-nameforge .ggnf-viewtoggle button.active { color: var(--ggnf-brass); border-color: var(--ggnf-brass); }
+.gg-nameforge .ggnf-generate:hover { filter: brightness(1.12); }
+.gg-nameforge .ggnf-generate:active { filter: brightness(0.95); }
 
-/* Results */
+.gg-nameforge .ggnf-viewtoggle { display: flex; gap: 3px; }
+.gg-nameforge .ggnf-viewtoggle button {
+  width: 34px;
+  background: var(--ggnf-panel);
+  border: 1px solid var(--ggnf-gold-line);
+  color: var(--ggnf-gold-dim);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.gg-nameforge .ggnf-viewtoggle button:hover,
+.gg-nameforge .ggnf-viewtoggle button.active {
+  color: var(--ggnf-gold);
+  border-color: var(--ggnf-gold);
+}
+
+/* ── Resultados ───────────────────────────────────────────── */
 .gg-nameforge .ggnf-results {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 420px;
+  max-height: 460px;
   overflow-y: auto;
+  padding-right: 2px;
 }
-.gg-nameforge .ggnf-single .ggnf-card { padding: 14px 12px; }
-.gg-nameforge .ggnf-single .ggnf-name { font-size: 1.25em; }
+.gg-nameforge .ggnf-results.ggnf-single .ggnf-card { padding: 14px 12px; }
+.gg-nameforge .ggnf-results.ggnf-single .ggnf-name { font-size: 1.3em; }
 
+/* Card con borde doble grabado + esquinas de acento llama */
 .gg-nameforge .ggnf-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px;
-  background: var(--ggnf-panel);
-  border: 1px solid var(--ggnf-line);
-  border-radius: 5px;
+  gap: 10px;
+  padding: 9px 11px;
+  background: var(--ggnf-black);
+  border: 1px solid var(--ggnf-gold);
+  box-shadow: inset 0 0 0 2px var(--ggnf-black), 0 0 0 1px var(--ggnf-gold-line);
+  position: relative;
+  transition: filter 0.12s;
 }
-.gg-nameforge .ggnf-card-main { min-width: 0; flex: 1; }
-.gg-nameforge .ggnf-name {
+.gg-nameforge .ggnf-card:hover { filter: brightness(1.15); }
+
+/* Las dos esquinas en L, color llama (firma del estilo Doble filo) */
+.gg-nameforge .ggnf-card::before,
+.gg-nameforge .ggnf-card::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+}
+.gg-nameforge .ggnf-card::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid var(--ggnf-flame);
+  border-left: 2px solid var(--ggnf-flame);
+}
+.gg-nameforge .ggnf-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid var(--ggnf-flame);
+  border-right: 2px solid var(--ggnf-flame);
+}
+
+.gg-nameforge .ggnf-card-icon {
+  flex: 0 0 30px;
+  height: 30px;
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-weight: 700;
-  color: var(--ggnf-ink);
+  justify-content: center;
+  color: var(--ggnf-gold);
+  font-size: 1.05em;
+  border: 1px solid var(--ggnf-gold-line);
+  background: var(--ggnf-panel);
 }
-.gg-nameforge .ggnf-gender, .gg-nameforge .ggnf-itemicon { color: var(--ggnf-brass); font-size: 0.85em; }
-.gg-nameforge .ggnf-subtitle { font-size: 0.74em; color: var(--ggnf-ink-dim); margin-top: 2px; text-transform: capitalize; }
-.gg-nameforge .ggnf-trait { font-size: 0.78em; color: var(--ggnf-ink-dim); font-style: italic; margin-top: 3px; }
+.gg-nameforge .ggnf-card-main { flex: 1; min-width: 0; }
+.gg-nameforge .ggnf-name {
+  font-weight: bold;
+  color: var(--ggnf-gold-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gg-nameforge .ggnf-subtitle {
+  font-size: 0.7em;
+  color: var(--ggnf-gold-dim);
+  margin-top: 2px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.gg-nameforge .ggnf-trait {
+  font-size: 0.78em;
+  color: #A89060;
+  font-style: italic;
+  margin-top: 3px;
+}
 
-.gg-nameforge .ggnf-card-actions { display: flex; gap: 4px; flex: 0 0 auto; }
+/* Acciones por card */
+.gg-nameforge .ggnf-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
 .gg-nameforge .ggnf-card-actions button {
   width: 30px;
   height: 30px;
-  background: transparent;
-  border: 1px solid var(--ggnf-line);
-  border-radius: 4px;
-  color: var(--ggnf-ink);
+  background: var(--ggnf-panel);
+  border: 1px solid var(--ggnf-gold-line);
+  color: var(--ggnf-gold-bright);
   cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
 }
-.gg-nameforge .ggnf-card-actions button:hover { border-color: var(--ggnf-brass); color: var(--ggnf-brass); }
+.gg-nameforge .ggnf-card-actions button:hover {
+  color: var(--ggnf-gold);
+  border-color: var(--ggnf-gold);
+}
 
+/* Rareza: el ícono cambia de color según la rareza del ítem */
+.gg-nameforge .ggnf-rarity-uncommon  .ggnf-card-icon { color: #6BBF59; border-color: #3a5a30; }
+.gg-nameforge .ggnf-rarity-rare      .ggnf-card-icon { color: #5A9BD8; border-color: #2d4a6b; }
+.gg-nameforge .ggnf-rarity-veryRare  .ggnf-card-icon { color: #B98AD9; border-color: #5a3d6b; }
+.gg-nameforge .ggnf-rarity-legendary .ggnf-card-icon { color: var(--ggnf-flame); border-color: #6b3a1d; }
+
+/* Estado vacío de favoritos */
+.gg-nameforge .ggnf-empty {
+  text-align: center;
+  padding: 24px 12px;
+  color: var(--ggnf-gold-dim);
+  font-style: italic;
+  font-size: 0.88em;
+}
+.gg-nameforge .ggnf-empty i { display: block; font-size: 1.6em; margin-bottom: 8px; opacity: 0.5; }
+
+/* Firma */
 .gg-nameforge .ggnf-brand {
   text-align: center;
-  font-size: 0.62em;
-  letter-spacing: 0.12em;
+  font-size: 0.6em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ggnf-ink-dim);
-  opacity: 0.6;
+  color: var(--ggnf-gold-dim);
+  opacity: 0.5;
 }
