@@ -35,10 +35,10 @@ export const NAME_DATA = {
       surnames: ["Amakiir", "Galanodel", "Holimion", "Liadon", "Meliamne", "Naïlo", "Siannodel", "Xiloscient"]
     },
     es: {
-      male: ["Aelar", "Erevan", "Faelar", "Laucian", "Soveliss", "Thamior", "Varis"],
-      female: ["Adrie", "Enna", "Ielenia", "Lia", "Mialee", "Thia"],
-      neutral: ["Ara", "Myr", "Sael", "Vaen"],
-      surnames: ["Amakiir", "Galanodel", "Liadon", "Naïlo", "Siannodel"]
+      male: ["Aelar", "Erevan", "Faelar", "Laucian", "Soveliss", "Thamior", "Varis", "Caelis", "Aramil", "Tharivol"],
+      female: ["Adrie", "Enna", "Ielenia", "Lia", "Mialee", "Thia", "Anrae", "Silaqui", "Vadania", "Mereille"],
+      neutral: ["Ara", "Myr", "Sael", "Vaen", "Yll"],
+      surnames: ["Amakiir", "Galanodel", "Liadon", "Naïlo", "Siannodel", "Lunaplata", "Hojarauda", "Sombravelo"]
     }
   },
   dwarf: {
@@ -49,10 +49,10 @@ export const NAME_DATA = {
       surnames: ["Balderk", "Dankil", "Fireforge", "Gorunn", "Holderhek", "Loderr", "Rumnaheim", "Strakeln", "Torunn"]
     },
     es: {
-      male: ["Adrik", "Baern", "Darrak", "Gardain", "Morgran", "Rurik", "Vondal"],
-      female: ["Bardryn", "Diesa", "Eldeth", "Kathra", "Riswynn", "Torbera"],
-      neutral: ["Brunn", "Korr", "Thrain"],
-      surnames: ["Forjafuego", "Balderk", "Loderr", "Martillo", "Yunque", "Rumnaheim"]
+      male: ["Adrik", "Baern", "Darrak", "Gardain", "Morgran", "Rurik", "Vondal", "Thoradin", "Brottor", "Dolgrin"],
+      female: ["Bardryn", "Diesa", "Eldeth", "Kathra", "Riswynn", "Torbera", "Gurdis", "Ilde", "Liftrasa"],
+      neutral: ["Brunn", "Korr", "Thrain", "Dern"],
+      surnames: ["Forjafuego", "Balderk", "Loderr", "Martillo", "Yunque", "Rumnaheim", "Barbahierro", "Rocafirme", "Cavernaprofunda"]
     }
   },
   halfling: {
@@ -63,10 +63,10 @@ export const NAME_DATA = {
       surnames: ["Brushgather", "Goodbarrel", "Greenbottle", "High-hill", "Leagallow", "Tealeaf", "Thorngage", "Underbough"]
     },
     es: {
-      male: ["Alton", "Cade", "Lyle", "Milo", "Osborn", "Roscoe"],
-      female: ["Bree", "Cora", "Jillian", "Merla", "Portia"],
-      neutral: ["Pip", "Tansy", "Nob"],
-      surnames: ["Buenbarril", "Hojaverde", "Tomillar", "Colina-alta", "Brizna"]
+      male: ["Alton", "Cade", "Lyle", "Milo", "Osborn", "Roscoe", "Wenncho", "Garmo", "Lindal"],
+      female: ["Bree", "Cora", "Jillian", "Merla", "Portia", "Amapola", "Rosalina", "Petunia", "Verena"],
+      neutral: ["Pip", "Tansy", "Nob", "Finch"],
+      surnames: ["Buenbarril", "Hojaverde", "Tomillar", "Colina-alta", "Brizna", "Recogeflores", "Teteverde", "Pieligero"]
     }
   },
   orc: {
@@ -77,10 +77,10 @@ export const NAME_DATA = {
       surnames: ["the Cleaver", "Skullsplitter", "Ironjaw", "Bonecrusher", "the Red", "Bloodtusk", "Grimaxe"]
     },
     es: {
-      male: ["Dench", "Gell", "Holg", "Krusk", "Ront", "Thokk"],
-      female: ["Baggi", "Kansif", "Myev", "Neega", "Vola"],
-      neutral: ["Brak", "Grish", "Murn"],
-      surnames: ["el Hendidor", "Rompecráneos", "Mandíbula de Hierro", "Colmillo Sangriento", "el Rojo"]
+      male: ["Dench", "Gell", "Holg", "Krusk", "Ront", "Thokk", "Gorath", "Murg", "Brakka"],
+      female: ["Baggi", "Kansif", "Myev", "Neega", "Vola", "Engong", "Shautha", "Yevelda"],
+      neutral: ["Brak", "Grish", "Murn", "Ag"],
+      surnames: ["el Hendidor", "Rompecráneos", "Mandíbula de Hierro", "Colmillo Sangriento", "el Rojo", "Triturahuesos", "Hachasiniestra", "el Implacable"]
     }
   },
   tiefling: {
@@ -91,10 +91,10 @@ export const NAME_DATA = {
       surnames: ["the Ashen", "Nightborn", "Hellbrand", "the Forsaken", "Emberheart", "Duskwalker"]
     },
     es: {
-      male: ["Akmenos", "Damakos", "Kairon", "Melech", "Mordai", "Therai"],
-      female: ["Akta", "Damaia", "Kallista", "Nemeia", "Orianna", "Rieta"],
-      neutral: ["Carroña", "Ascua", "Tormento", "Vigilia", "Esperanza"],
-      surnames: ["el Ceniciento", "Nacido de Noche", "Corazón de Brasa", "el Olvidado"]
+      male: ["Akmenos", "Damakos", "Kairon", "Melech", "Mordai", "Therai", "Barakas", "Iados", "Skamos"],
+      female: ["Akta", "Damaia", "Kallista", "Nemeia", "Orianna", "Rieta", "Bryseis", "Lerissa", "Makaria"],
+      neutral: ["Carroña", "Ascua", "Tormento", "Vigilia", "Esperanza", "Anhelo"],
+      surnames: ["el Ceniciento", "Nacido de Noche", "Corazón de Brasa", "el Olvidado", "Marcafuego", "Caminante del Ocaso"]
     }
   },
   dragonborn: {
@@ -105,10 +105,10 @@ export const NAME_DATA = {
       surnames: ["Clethtinthiallor", "Daardendrian", "Kepeshkmolik", "Myastan", "Nemmonis", "Prexijandilin", "Verthisathurgiesh"]
     },
     es: {
-      male: ["Arjhan", "Balasar", "Donaar", "Heskan", "Kriv", "Medrash", "Tarhun"],
-      female: ["Akra", "Daar", "Farideh", "Harann", "Korinn", "Nala", "Sora"],
-      neutral: ["Kava", "Rendill", "Vrak"],
-      surnames: ["Daardendrian", "Kepeshkmolik", "Myastan", "Nemmonis"]
+      male: ["Arjhan", "Balasar", "Donaar", "Heskan", "Kriv", "Medrash", "Tarhun", "Ghesh", "Nadarr", "Pandjed"],
+      female: ["Akra", "Daar", "Farideh", "Harann", "Korinn", "Nala", "Sora", "Biri", "Mishann", "Kava"],
+      neutral: ["Rendill", "Vrak", "Ophin"],
+      surnames: ["Daardendrian", "Kepeshkmolik", "Myastan", "Nemmonis", "Prexijandilin", "Verthisathurgiesh"]
     }
   },
   gnome: {
@@ -119,10 +119,10 @@ export const NAME_DATA = {
       surnames: ["Beren", "Daergel", "Folkor", "Garrick", "Nackle", "Murnig", "Ningel", "Scheppen", "Timbers", "Turen"]
     },
     es: {
-      male: ["Boddynock", "Dimble", "Fonkin", "Jebeddo", "Namfoodle", "Seebo", "Zook"],
-      female: ["Caramip", "Donella", "Ella", "Lilli", "Nyx", "Roywyn"],
+      male: ["Boddynock", "Dimble", "Fonkin", "Jebeddo", "Namfoodle", "Seebo", "Zook", "Gerbo", "Roondar", "Warryn"],
+      female: ["Caramip", "Donella", "Ella", "Lilli", "Nyx", "Roywyn", "Bimpnottin", "Shamil", "Waywocket"],
       neutral: ["Bink", "Fizz", "Gimble", "Sprocket"],
-      surnames: ["Daergel", "Folkor", "Nackle", "Ningel", "Timbers"]
+      surnames: ["Daergel", "Folkor", "Nackle", "Ningel", "Timbers", "Engranaje", "Chispa", "Tuercafina"]
     }
   }
 };

@@ -1,126 +1,196 @@
 /**
- * GG Nameforge — Main application (ApplicationV2, v12–v14).
+ * GG Nameforge — UI (ApplicationV2, v12-v14).
+ * "Doble filo" visual style: double-bevel gold frames over deep black.
  */
 
 const MODULE_ID = "gg-nameforge";
 
-import { generateNPC, RACES } from "./npc.mjs";
+import { generateNPC, RACES, THREAT_KEYS } from "./npc.mjs";
 import { generateItem } from "./items.mjs";
 import { createNPCActor, createMagicItem } from "./foundry-create.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+/** Read the language override setting, else follow Foundry's UI language. */
+function resolveLang() {
+  const override = game.settings.get(MODULE_ID, "language");
+  if (override === "es" || override === "en") return override;
+  return game.i18n.lang === "es" ? "es" : "en";
+}
+
 export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
-  #mode = "npc";        // "npc" | "item"
-  #view = "single";     // "single" | "list"
-  #race = "human";
-  #gender = "male";
+  #mode     = "npc";          // "npc" | "item" | "favorites"
+  #view     = "single";       // "single" | "list"
+  #race     = "random";
+  #gender   = "random";
+  #threat   = "minion";
   #itemType = "random";
-  #results = [];        // current generated batch
+  #results  = [];
+  #favorites = [];            // persisted favorites (loaded in _prepareContext)
 
   static DEFAULT_OPTIONS = {
     id: "gg-nameforge-app",
     classes: ["gg-nameforge"],
-    window: { title: "GGNF.Title", icon: "fa-solid fa-feather-pointed", resizable: false },
-    position: { width: 420, height: "auto" },
+    window: {
+      title: "GGNF.Title",
+      icon:  "fa-solid fa-feather-pointed",
+      resizable: false
+    },
+    position: { width: 440, height: "auto" },
     actions: {
-      setMode: NameforgeApp.#onSetMode,
-      setView: NameforgeApp.#onSetView,
-      generate: NameforgeApp.#onGenerate,
+      setMode:     NameforgeApp.#onSetMode,
+      setView:     NameforgeApp.#onSetView,
+      generate:    NameforgeApp.#onGenerate,
       createActor: NameforgeApp.#onCreateActor,
-      createItem: NameforgeApp.#onCreateItem,
-      copyName: NameforgeApp.#onCopyName
+      createItem:  NameforgeApp.#onCreateItem,
+      copyName:    NameforgeApp.#onCopyName,
+      favorite:    NameforgeApp.#onFavorite,
+      unfavorite:  NameforgeApp.#onUnfavorite
     }
   };
 
-  static PARTS = { main: { template: `modules/${MODULE_ID}/templates/nameforge.hbs` } };
+  static PARTS = {
+    main: { template: `modules/${MODULE_ID}/templates/nameforge.hbs` }
+  };
 
-  get lang() {
-    return (game.i18n.lang === "es") ? "es" : "en";
+  get lang() { return resolveLang(); }
+
+  // ── Favorites persistence (world setting, GM-scoped) ─────────────────────
+  #loadFavorites() {
+    try {
+      this.#favorites = game.settings.get(MODULE_ID, "favorites") ?? [];
+    } catch {
+      this.#favorites = [];
+    }
+  }
+  async #saveFavorites() {
+    try { await game.settings.set(MODULE_ID, "favorites", this.#favorites); }
+    catch (err) { console.error(`${MODULE_ID} | could not save favorites`, err); }
   }
 
   async _prepareContext() {
-    if (!this.#results.length) this.#regenerate();
+    this.#loadFavorites();
+
+    const isFav = this.#mode === "favorites";
+    if (!isFav && !this.#results.length) this.#regenerate();
 
     return {
-      mode: this.#mode,
-      view: this.#view,
-      isNPC: this.#mode === "npc",
-      race: this.#race,
-      gender: this.#gender,
-      itemType: this.#itemType,
-      races: RACES.map(r => ({ key: r, label: game.i18n.localize(`GGNF.Race.${r}`), selected: r === this.#race })),
-      genders: ["male", "female", "neutral", "random"].map(g => ({ key: g, label: game.i18n.localize(`GGNF.Gender.${g}`), selected: g === this.#gender })),
-      itemTypes: ["random", "weapon", "armor", "potion", "ring", "wand", "scroll", "wondrous"].map(t => ({ key: t, label: game.i18n.localize(`GGNF.ItemType.${t}`), selected: t === this.#itemType })),
-      results: this.#results.map(r => this.#decorate(r)),
-      single: this.#view === "single"
+      mode:      this.#mode,
+      view:      this.#view,
+      isNPC:     this.#mode === "npc",
+      isItem:    this.#mode === "item",
+      isFav,
+      single:    this.#view === "single",
+      race:      this.#race,
+      gender:    this.#gender,
+      threat:    this.#threat,
+      itemType:  this.#itemType,
+      favCount:  this.#favorites.length,
+      races: ["random", ...RACES].map(r => ({
+        key: r, label: game.i18n.localize(`GGNF.Race.${r}`), selected: r === this.#race
+      })),
+      genders: ["male","female","neutral","random"].map(g => ({
+        key: g, label: game.i18n.localize(`GGNF.Gender.${g}`), selected: g === this.#gender
+      })),
+      threats: THREAT_KEYS.map(t => ({
+        key: t, label: game.i18n.localize(`GGNF.Threat.${t}`), selected: t === this.#threat
+      })),
+      itemTypes: ["random","weapon","armor","potion","ring","wand","scroll","wondrous"].map(t => ({
+        key: t, label: game.i18n.localize(`GGNF.ItemType.${t}`), selected: t === this.#itemType
+      })),
+      results:   (isFav ? this.#favorites : this.#results).map((r, i) => this.#decorate(r, i, isFav))
     };
   }
 
-  #decorate(r) {
-    if (this.#mode === "npc") {
+  /** Build all display fields the template needs. Fixes the missing-field bug. */
+  #decorate(r, index, isFav) {
+    const base = { ...r, index, isFav };
+    if ((r.kind ?? (r.threat ? "npc" : "item")) === "npc") {
       return {
-        ...r,
-        raceLabel: game.i18n.localize(`GGNF.Race.${r.race}`),
-        genderIcon: r.gender === "female" ? "fa-venus" : r.gender === "male" ? "fa-mars" : "fa-genderless",
-        occupationLabel: r.occupation,
-        traitLabel: r.trait,
-        subtitle: `${game.i18n.localize(`GGNF.Race.${r.race}`)} · ${r.occupation}`
+        ...base,
+        isNPCCard:  true,
+        genderIcon: r.gender === "female" ? "fa-venus"
+                  : r.gender === "male"   ? "fa-mars"
+                  : "fa-genderless",
+        traitText:  r.trait,
+        subtitle:   `${game.i18n.localize(`GGNF.Race.${r.race}`)} · ${r.occupation}`,
+        threatLabel: game.i18n.localize(`GGNF.Threat.${r.threat ?? "minion"}`)
       };
     }
     return {
-      ...r,
-      rarityLabel: game.i18n.localize(`GGNF.Rarity.${r.rarity}`),
-      typeLabel: game.i18n.localize(`GGNF.ItemType.${r.type}`),
-      subtitle: `${game.i18n.localize(`GGNF.Rarity.${r.rarity}`)} · ${game.i18n.localize(`GGNF.ItemType.${r.type}`)}`
+      ...base,
+      isNPCCard: false,
+      icon:      r.icon ?? "fa-solid fa-wand-magic-sparkles",
+      flavorText: r.flavor,
+      subtitle:  `${game.i18n.localize(`GGNF.Rarity.${r.rarity}`)} · ${game.i18n.localize(`GGNF.ItemType.${r.type}`)}`,
+      rarityClass: `ggnf-rarity-${r.rarity}`
     };
   }
 
   #regenerate() {
     const count = this.#view === "single" ? 1 : 8;
-    this.#results = [];
-    for (let i = 0; i < count; i++) {
-      this.#results.push(
-        this.#mode === "npc"
-          ? generateNPC({ race: this.#race, gender: this.#gender, lang: this.lang })
-          : generateItem(this.lang, this.#itemType === "random" ? null : this.#itemType)
-      );
+    this.#results = Array.from({ length: count }, () => {
+      if (this.#mode === "npc") {
+        const npc = generateNPC({
+          race:   this.#race === "random" ? null : this.#race,
+          gender: this.#gender,
+          threat: this.#threat,
+          lang:   this.lang
+        });
+        npc.kind = "npc";
+        return npc;
+      }
+      const item = generateItem(this.lang, this.#itemType === "random" ? null : this.#itemType);
+      item.kind = "item";
+      return item;
+    });
+  }
+
+  #readForm() {
+    const el = this.element;
+    if (!el) return;
+    if (this.#mode === "npc") {
+      this.#race   = el.querySelector('[name="race"]')?.value   ?? this.#race;
+      this.#gender = el.querySelector('[name="gender"]')?.value ?? this.#gender;
+      this.#threat = el.querySelector('[name="threat"]')?.value ?? this.#threat;
+    } else if (this.#mode === "item") {
+      this.#itemType = el.querySelector('[name="itemType"]')?.value ?? this.#itemType;
     }
   }
 
-  /* ---- Actions ---- */
+  // ── Actions ──────────────────────────────────────────────────────────────
 
-  static #onSetMode(_e, t) { this.#mode = t.dataset.value; this.#results = []; this.render(); }
-  static #onSetView(_e, t) { this.#view = t.dataset.value; this.#results = []; this.render(); }
+  static #onSetMode(_e, t) {
+    this.#mode = t.dataset.value;
+    if (this.#mode !== "favorites") this.#results = [];
+    this.render();
+  }
+
+  static #onSetView(_e, t) {
+    this.#readForm();
+    this.#view = t.dataset.value;
+    this.#results = [];
+    this.render();
+  }
 
   static #onGenerate() {
-    // Read current selector values from the form before generating.
-    const root = this.element;
-    if (this.#mode === "npc") {
-      this.#race = root.querySelector('[name="race"]')?.value ?? this.#race;
-      this.#gender = root.querySelector('[name="gender"]')?.value ?? this.#gender;
-    } else {
-      this.#itemType = root.querySelector('[name="itemType"]')?.value ?? this.#itemType;
-    }
+    this.#readForm();
     this.#regenerate();
     this.render();
   }
 
   static async #onCreateActor(_e, t) {
-    const idx = Number(t.dataset.index);
-    const npc = this.#results[idx];
-    if (npc) await createNPCActor(npc);
+    const r = this.#current(t);
+    if (r) await createNPCActor(r);
   }
 
   static async #onCreateItem(_e, t) {
-    const idx = Number(t.dataset.index);
-    const item = this.#results[idx];
-    if (item) await createMagicItem(item);
+    const r = this.#current(t);
+    if (r) await createMagicItem(r);
   }
 
   static async #onCopyName(_e, t) {
-    const idx = Number(t.dataset.index);
-    const r = this.#results[idx];
+    const r = this.#current(t);
     if (!r) return;
     try {
       await game.clipboard.copyPlainText(r.name);
@@ -128,5 +198,27 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     } catch {
       ui.notifications.warn(r.name);
     }
+  }
+
+  static async #onFavorite(_e, t) {
+    const r = this.#current(t);
+    if (!r) return;
+    this.#favorites.unshift(foundry.utils.deepClone(r));
+    await this.#saveFavorites();
+    ui.notifications.info(game.i18n.format("GGNF.Favorited", { name: r.name }));
+    this.render();
+  }
+
+  static async #onUnfavorite(_e, t) {
+    const idx = Number(t.dataset.index);
+    this.#favorites.splice(idx, 1);
+    await this.#saveFavorites();
+    this.render();
+  }
+
+  /** Resolve the descriptor a card button refers to (favorites or results). */
+  #current(t) {
+    const idx = Number(t.dataset.index);
+    return this.#mode === "favorites" ? this.#favorites[idx] : this.#results[idx];
   }
 }

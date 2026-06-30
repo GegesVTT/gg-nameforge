@@ -5,6 +5,8 @@
  * actor/item with the name and a biography note so nothing breaks.
  */
 
+import { THREAT_TIERS } from "./npc.mjs";
+
 const MODULE_ID = "gg-nameforge";
 
 /** 3d6 roll for ability scores. */
@@ -14,6 +16,9 @@ function roll3d6() {
          (1 + Math.floor(Math.random() * 6));
 }
 
+/** Random integer in [min, max] inclusive. */
+const randInt = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+
 const isDnd5e = () => game.system?.id === "dnd5e";
 
 /**
@@ -21,44 +26,51 @@ const isDnd5e = () => game.system?.id === "dnd5e";
  * Returns the created Actor or null.
  */
 export async function createNPCActor(npc) {
+  if (!npc || typeof npc !== "object") return null;
   if (!game.user.can("ACTOR_CREATE")) {
     ui.notifications.warn(game.i18n.localize("GGNF.Errors.NoActorPerm"));
     return null;
   }
 
-  const bio = game.i18n.format("GGNF.Actor.Bio", {
-    race: npc.race, occupation: npc.occupation, trait: npc.trait
-  });
+  // Guard: ensure required fields exist so the biography never reads "undefined".
+  const race       = npc.race       ?? "human";
+  const occupation = npc.occupation ?? game.i18n.localize("GGNF.Fallback.Occupation");
+  const trait      = npc.trait      ?? game.i18n.localize("GGNF.Fallback.Trait");
+  const threat     = npc.threat     ?? "minion";
+  const name       = npc.name       ?? game.i18n.localize("GGNF.Fallback.Name");
 
-  let data = { name: npc.name, type: isDnd5e() ? "npc" : (Object.keys(game.documentTypes.Actor).find(t => t !== "base") ?? "base") };
+  const bio = game.i18n.format("GGNF.Actor.Bio", { race, occupation, trait });
+
+  let data = { name, type: isDnd5e() ? "npc" : (Object.keys(game.documentTypes.Actor).find(t => t !== "base") ?? "base") };
 
   if (isDnd5e()) {
+    const tier = THREAT_TIERS[threat] ?? THREAT_TIERS.minion;
     const abilities = {};
     for (const ab of ["str", "dex", "con", "int", "wis", "cha"]) {
       abilities[ab] = { value: roll3d6() };
     }
-    const conMod = Math.floor((abilities.con.value - 10) / 2);
-    const hp = Math.max(1, Math.floor(Math.random() * 8) + 1 + conMod); // ~1d8+conMod, CR low
+    // HP comes from the threat tier's range, so bosses are actually tough.
+    const hp = randInt(tier.hp[0], tier.hp[1]);
     data = foundry.utils.mergeObject(data, {
       system: {
         abilities,
         attributes: { hp: { value: hp, max: hp } },
         details: {
           biography: { value: `<p>${bio}</p>` },
-          cr: 0,
+          cr: tier.cr,
           type: { value: "humanoid" }
         }
       },
-      flags: { [MODULE_ID]: { generated: true, race: npc.race } }
+      flags: { [MODULE_ID]: { generated: true, race, threat } }
     });
   } else {
     // Agnostic: just name + a journal-style note in flags.
-    data.flags = { [MODULE_ID]: { generated: true, race: npc.race, note: bio } };
+    data.flags = { [MODULE_ID]: { generated: true, race, note: bio } };
   }
 
   try {
     const actor = await Actor.create(data);
-    ui.notifications.info(game.i18n.format("GGNF.Actor.Created", { name: npc.name }));
+    ui.notifications.info(game.i18n.format("GGNF.Actor.Created", { name }));
     actor?.sheet?.render(true);
     return actor;
   } catch (err) {
@@ -72,6 +84,7 @@ export async function createNPCActor(npc) {
  * Create an Item from a magic item descriptor (see items.mjs#generateItem).
  */
 export async function createMagicItem(item) {
+  if (!item || typeof item !== "object") return null;
   if (!game.user.can("ITEM_CREATE")) {
     ui.notifications.warn(game.i18n.localize("GGNF.Errors.NoItemPerm"));
     return null;
@@ -82,8 +95,13 @@ export async function createMagicItem(item) {
     ring: "equipment", wand: "consumable", scroll: "consumable", wondrous: "equipment"
   };
 
-  const desc = `<p><em>${item.flavor}</em></p>`;
-  let data = { name: item.name, type: isDnd5e() ? (TYPE_MAP_5E[item.type] ?? "loot") : (Object.keys(game.documentTypes.Item).find(t => t !== "base") ?? "base") };
+  // Guard against a missing flavor so the description never reads "undefined".
+  const name   = item.name   ?? game.i18n.localize("GGNF.Fallback.Item");
+  const flavor = item.flavor ?? game.i18n.localize("GGNF.Fallback.Flavor");
+  const itemType = item.type ?? "wondrous";
+  const desc = `<p><em>${flavor}</em></p>`;
+
+  let data = { name, type: isDnd5e() ? (TYPE_MAP_5E[itemType] ?? "loot") : (Object.keys(game.documentTypes.Item).find(t => t !== "base") ?? "base") };
 
   if (isDnd5e()) {
     data = foundry.utils.mergeObject(data, {
@@ -94,12 +112,12 @@ export async function createMagicItem(item) {
       flags: { [MODULE_ID]: { generated: true } }
     });
   } else {
-    data.flags = { [MODULE_ID]: { generated: true, rarity: item.rarity, note: item.flavor } };
+    data.flags = { [MODULE_ID]: { generated: true, rarity: item.rarity ?? "common", note: flavor } };
   }
 
   try {
     const created = await Item.create(data);
-    ui.notifications.info(game.i18n.format("GGNF.Item.Created", { name: item.name }));
+    ui.notifications.info(game.i18n.format("GGNF.Item.Created", { name }));
     created?.sheet?.render(true);
     return created;
   } catch (err) {
