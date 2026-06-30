@@ -1,36 +1,22 @@
 /**
  * GG Nameforge — NPC generator.
- * Assembles a full NPC descriptor (name, race, gender, occupation, trait,
- * threat tier) from curated pools, falling back to the syllable engine.
+ * Assembles an NPC descriptor (name, race, gender, archetype, CR) from curated
+ * pools. The archetype + CR drive the SRD kit assembly in foundry-create.mjs.
  */
 
 import { NAME_DATA, NPC_FLAVOR, RACES } from "./names-data.mjs";
 import { syllableName } from "./syllables.mjs";
+import { ARCHETYPE_KEYS, CR_KEYS } from "./srd-kit.mjs";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-/**
- * Threat tiers map to a target CR and an HP range, so the same generator can
- * produce a harmless commoner or a deadly boss. Used by foundry-create.mjs.
- */
-export const THREAT_TIERS = {
-  commoner: { cr: 0,   hp: [2, 6],     label: "commoner" },
-  minion:   { cr: 0.5, hp: [7, 18],    label: "minion" },
-  veteran:  { cr: 3,   hp: [30, 60],   label: "veteran" },
-  elite:    { cr: 7,   hp: [90, 140],  label: "elite" },
-  boss:     { cr: 13,  hp: [180, 260], label: "boss" }
-};
-export const THREAT_KEYS = Object.keys(THREAT_TIERS);
+export { ARCHETYPE_KEYS, CR_KEYS };
 
 function pool(race, lang) {
   const r = NAME_DATA[race] ?? NAME_DATA.human;
   return r[lang] ?? r.en;
 }
 
-/**
- * Generate a given name for race/gender/lang.
- * 70% curated when available, otherwise syllable-built.
- */
 export function generateGivenName(race, gender = "male", lang = "en") {
   const p = pool(race, lang);
   let list = p[gender];
@@ -48,12 +34,18 @@ export function generateSurname(race, lang = "en") {
 
 /**
  * Full NPC descriptor.
- * @param {object} opts { race, gender, lang, withSurname, threat }
+ * @param {object} opts { race, gender, lang, withSurname, archetype, cr }
  */
-export function generateNPC({ race = "human", gender = "male", lang = "en", withSurname = true, threat = "minion" } = {}) {
+export function generateNPC({
+  race = "human", gender = "male", lang = "en", withSurname = true,
+  archetype = "guard", cr = "cr1"
+} = {}) {
   if (race == null || race === "random") race = pick(RACES);
   if (gender === "random") gender = pick(["male", "female", "neutral"]);
-  if (!THREAT_TIERS[threat]) threat = "minion";
+  if (archetype === "random" || !ARCHETYPE_KEYS.includes(archetype)) {
+    archetype = pick(ARCHETYPE_KEYS);
+  }
+  if (!CR_KEYS.includes(cr)) cr = "cr1";
 
   const given = generateGivenName(race, gender, lang);
   const surname = withSurname ? generateSurname(race, lang) : "";
@@ -65,7 +57,9 @@ export function generateNPC({ race = "human", gender = "male", lang = "en", with
     surname,
     race,
     gender,
-    threat,
+    archetype,
+    cr,
+    kind: "npc",
     occupation: pick(flavor.occupations),
     trait: pick(flavor.traits)
   };

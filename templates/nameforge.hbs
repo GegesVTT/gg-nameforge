@@ -29,10 +29,16 @@
           {{#each genders}}<option value="{{this.key}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
         </select>
       </div>
-      <div class="ggnf-field ggnf-field-wide">
-        <label>{{localize "GGNF.Field.Threat"}}</label>
-        <select name="threat">
-          {{#each threats}}<option value="{{this.key}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+      <div class="ggnf-field">
+        <label>{{localize "GGNF.Field.Archetype"}}</label>
+        <select name="archetype">
+          {{#each archetypes}}<option value="{{this.key}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
+        </select>
+      </div>
+      <div class="ggnf-field">
+        <label>{{localize "GGNF.Field.CR"}}</label>
+        <select name="cr">
+          {{#each crs}}<option value="{{this.key}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>{{/each}}
         </select>
       </div>
     {{else}}

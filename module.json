@@ -2,7 +2,7 @@
   "id": "gg-nameforge",
   "title": "GG Nameforge",
   "description": "Fast NPC and magic item name generator for Foundry VTT. Names by race and culture, gender control, quick NPC details, and one-click actor/item creation for D&D 5e. Bilingual (EN/ES). By Geges.",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "authors": [
     {
       "name": "Geges",
@@ -36,7 +36,7 @@
   ],
   "url": "https://github.com/GegesVTT/gg-nameforge",
   "manifest": "https://github.com/GegesVTT/gg-nameforge/releases/latest/download/module.json",
-  "download": "https://github.com/GegesVTT/gg-nameforge/releases/download/v1.1.1/gg-nameforge-v1.1.1.zip",
+  "download": "https://github.com/GegesVTT/gg-nameforge/releases/download/v1.2.0/gg-nameforge-v1.2.0.zip",
   "license": "MIT",
   "readme": "https://github.com/GegesVTT/gg-nameforge#readme",
   "bugs": "https://github.com/GegesVTT/gg-nameforge/issues"

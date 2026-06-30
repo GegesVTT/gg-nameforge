@@ -5,7 +5,7 @@
 
 const MODULE_ID = "gg-nameforge";
 
-import { generateNPC, RACES, THREAT_KEYS } from "./npc.mjs";
+import { generateNPC, RACES, ARCHETYPE_KEYS, CR_KEYS } from "./npc.mjs";
 import { generateItem } from "./items.mjs";
 import { createNPCActor, createMagicItem } from "./foundry-create.mjs";
 
@@ -23,7 +23,8 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   #view     = "single";       // "single" | "list"
   #race     = "random";
   #gender   = "random";
-  #threat   = "minion";
+  #archetype = "guard";
+  #cr        = "cr1";
   #itemType = "random";
   #results  = [];
   #favorites = [];            // persisted favorites (loaded in _prepareContext)
@@ -83,7 +84,8 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       single:    this.#view === "single",
       race:      this.#race,
       gender:    this.#gender,
-      threat:    this.#threat,
+      archetype: this.#archetype,
+      cr:        this.#cr,
       itemType:  this.#itemType,
       favCount:  this.#favorites.length,
       races: ["random", ...RACES].map(r => ({
@@ -92,8 +94,11 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       genders: ["male","female","neutral","random"].map(g => ({
         key: g, label: game.i18n.localize(`GGNF.Gender.${g}`), selected: g === this.#gender
       })),
-      threats: THREAT_KEYS.map(t => ({
-        key: t, label: game.i18n.localize(`GGNF.Threat.${t}`), selected: t === this.#threat
+      archetypes: ARCHETYPE_KEYS.map(a => ({
+        key: a, label: game.i18n.localize(`GGNF.Arch.${a}`), selected: a === this.#archetype
+      })),
+      crs: CR_KEYS.map(c => ({
+        key: c, label: game.i18n.localize(`GGNF.CR.${c}`), selected: c === this.#cr
       })),
       itemTypes: ["random","weapon","armor","potion","ring","wand","scroll","wondrous"].map(t => ({
         key: t, label: game.i18n.localize(`GGNF.ItemType.${t}`), selected: t === this.#itemType
@@ -105,7 +110,7 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   /** Build all display fields the template needs. Fixes the missing-field bug. */
   #decorate(r, index, isFav) {
     const base = { ...r, index, isFav };
-    if ((r.kind ?? (r.threat ? "npc" : "item")) === "npc") {
+    if ((r.kind ?? (r.archetype ? "npc" : "item")) === "npc") {
       return {
         ...base,
         isNPCCard:  true,
@@ -114,7 +119,7 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
                   : "fa-genderless",
         traitText:  r.trait,
         subtitle:   `${game.i18n.localize(`GGNF.Race.${r.race}`)} · ${r.occupation}`,
-        threatLabel: game.i18n.localize(`GGNF.Threat.${r.threat ?? "minion"}`)
+        archLabel: game.i18n.localize(`GGNF.Arch.${r.archetype ?? "guard"}`)
       };
     }
     return {
@@ -134,7 +139,8 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const npc = generateNPC({
           race:   this.#race === "random" ? null : this.#race,
           gender: this.#gender,
-          threat: this.#threat,
+          archetype: this.#archetype,
+          cr:     this.#cr,
           lang:   this.lang
         });
         npc.kind = "npc";
@@ -152,7 +158,8 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (this.#mode === "npc") {
       this.#race   = el.querySelector('[name="race"]')?.value   ?? this.#race;
       this.#gender = el.querySelector('[name="gender"]')?.value ?? this.#gender;
-      this.#threat = el.querySelector('[name="threat"]')?.value ?? this.#threat;
+      this.#archetype = el.querySelector('[name="archetype"]')?.value ?? this.#archetype;
+      this.#cr        = el.querySelector('[name="cr"]')?.value        ?? this.#cr;
     } else if (this.#mode === "item") {
       this.#itemType = el.querySelector('[name="itemType"]')?.value ?? this.#itemType;
     }
