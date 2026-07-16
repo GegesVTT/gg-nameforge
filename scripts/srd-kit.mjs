@@ -21,15 +21,17 @@ const isDnd5e = () => game.system?.id === "dnd5e";
 export const ARCHETYPES = {
   warrior: {
     label: "warrior",
+    features: ["multiattack"],       // a partir de featureTier
     weapons: { oneOf: [
       ["greatsword"], ["greataxe"], ["maul"], ["halberd"],     // two-handed
       ["longsword", "shield"], ["warhammer", "shield"], ["battleaxe", "shield"] // one-hand + shield
     ]},
-    armor: ["plate"],
+    armor: ["plate armor", "plate"],
     caster: null
   },
   guard: {
     label: "guard",
+    features: ["pack tactics"],
     weapons: { oneOf: [ ["spear"], ["longsword", "shield"], ["halberd"] ] },
     armor: ["leather armor", "leather"],
     caster: null
@@ -44,18 +46,19 @@ export const ARCHETYPES = {
   cleric: {
     label: "cleric",
     weapons: { oneOf: [ ["mace"], ["warhammer"] ] },
-    armor: ["chain mail", "scale mail", "plate"],
+    armor: ["chain mail", "scale mail", "plate armor", "plate"],
     caster: { type: "divine", schools: ["evocation", "abjuration", "enchantment"] }
   },
   bandit: {
     label: "bandit",
     weapons: { oneOf: [ ["dagger"], ["shortsword"], ["scimitar"] ] },
-    armor: ["studded leather", "leather"],
-    features: ["sneak attack", "thieves' cant"],
+    armor: ["studded leather armor", "studded leather", "leather armor", "leather"],
+    features: ["sneak attack"],
     caster: null
   },
   occultist: { // Bruja / Hechicero / Druida — magia natural / elemental
     label: "occultist",
+    features: ["magic resistance"],  // a partir de featureTier
     weapons: { oneOf: [ ["sickle"], ["dagger"], ["quarterstaff"] ] },
     arcaneFocus: ["wand", "staff", "crystal", "yew wand", "totem"],
     armor: null,
@@ -90,12 +93,17 @@ export const CR_KEYS = Object.keys(CR_TIERS);
 
 const _indexCache = new Map(); // packId → indexed entries
 
-/** All Item-type compendiums, SRD-style ones first. */
+/** All Item-type compendiums, ordered: system packs (dnd5e.*) first, world
+ *  packs second, module packs last. Without this, an NPC can end up equipped
+ *  with a midi-qol sample item or an alchemy ingredient — real case found in
+ *  a world with 56 item packs. */
 function itemPacks() {
-  return game.packs.filter(p => p.metadata.type === "Item");
-}
-function actorPacks() {
-  return game.packs.filter(p => p.metadata.type === "Actor");
+  const rank = (p) =>
+    p.metadata.packageType === "system" ? 0 :
+    p.metadata.packageType === "world"  ? 1 : 2;
+  return game.packs
+    .filter(p => p.metadata.type === "Item")
+    .sort((a, b) => rank(a) - rank(b));
 }
 
 /** Normalize for matching: lowercase, strip accents and punctuation. */
@@ -119,22 +127,29 @@ async function getIndex(pack) {
  * accent-insensitive), optionally constrained to dnd5e item sub-types.
  * Returns the full Document (ready to embed) or null.
  */
-async function findItem(names, { types } = {}) {
+async function findItem(names, { types, allowMagic = false } = {}) {
   const wanted = names.map(norm);
   // First pass: exact name match (best). Second pass: partial (fallback).
   for (const exact of [true, false]) {
     for (const pack of itemPacks()) {
       let index;
       try { index = await getIndex(pack); } catch { continue; }
-      const hit = index.find(e => {
+      const candidates = index.filter(e => {
         if (types && !types.includes(e.type)) return false;
+        // Mundane gear slots must never match magic variants: probing a real
+        // world showed "studded" landing on "Studded Leather Armor +3" and
+        // "plate" on "Adamantine Half Plate Armor".
+        if (!allowMagic && e.system?.rarity && e.system.rarity !== "common" && e.system.rarity !== "") return false;
         const n = norm(e.name);
         return exact
           ? wanted.some(w => n === w)
           : wanted.some(w => n.includes(w) && w.length >= 4); // avoid 1-3 char false hits
       });
-      if (hit) {
-        try { return await pack.getDocument(hit._id); } catch { /* keep looking */ }
+      if (candidates.length) {
+        // Shortest name = closest to what was asked ("Plate Armor" beats
+        // "Adamantine Half Plate Armor").
+        candidates.sort((a, b) => a.name.length - b.name.length);
+        try { return await pack.getDocument(candidates[0]._id); } catch { /* keep looking */ }
       }
     }
   }
@@ -147,7 +162,13 @@ async function findItem(names, { types } = {}) {
  */
 async function findSpells({ schools, maxLevel, count }) {
   if (!count || maxLevel < 0) return [];
-  const wantSchools = (schools ?? []).map(s => norm(s).slice(0, 4)); // "evoc", "abju"...
+  // dnd5e stores school as a 3-letter code; transmutation is "trs" (NOT "tra"),
+  // so prefix matching silently dropped every transmutation spell. Explicit map.
+  const SCHOOL_CODES = {
+    evocation: "evo", abjuration: "abj", conjuration: "con", transmutation: "trs",
+    enchantment: "enc", necromancy: "nec", illusion: "ill", divination: "div"
+  };
+  const wantCodes = (schools ?? []).map(s => SCHOOL_CODES[norm(s)] ?? norm(s).slice(0, 3));
   const pool = [];
   for (const pack of itemPacks()) {
     let index;
@@ -157,8 +178,8 @@ async function findSpells({ schools, maxLevel, count }) {
       const lvl = e.system?.level ?? 99;
       if (lvl > maxLevel) continue;
       const school = norm(e.system?.school ?? "");
-      // dnd5e stores school as a short code (evo, abj, con...) OR full word.
-      const schoolOk = !wantSchools.length || wantSchools.some(w => school.startsWith(w.slice(0, 3)) || w.startsWith(school.slice(0, 3)));
+      // Match by code, tolerating packs that store the full word.
+      const schoolOk = !wantCodes.length || wantCodes.some(c => school === c || school.startsWith(c) || c.startsWith(school.slice(0, 3)));
       if (schoolOk) pool.push({ pack, id: e._id, level: lvl });
     }
   }
@@ -226,7 +247,21 @@ export async function assembleSRDKit(archetypeKey, crKey) {
     if (!addUnique(doc)) notes.push(`armor:${arch.armor[0]}`);
   }
 
-  // 4. Spells (casters only).
+  // 4. Creature features: the field existed in the archetypes since v1.2 but
+  //    nothing ever read it. dnd5e ships them as standalone feat items in
+  //    dnd5e.monsterfeatures / monsterfeatures24 — same findItem, type "feat".
+  //    Marker features (multiattack, magic resistance) only from CR 3 up.
+  if (arch.features?.length) {
+    const featureTier = tier.cr >= 3;
+    for (const fName of arch.features) {
+      const isMarker = ["multiattack", "magic resistance"].includes(fName);
+      if (isMarker && !featureTier) continue;
+      const doc = await findItem([fName], { types: ["feat"], allowMagic: true });
+      if (!addUnique(doc)) notes.push(`feature:${fName}`);
+    }
+  }
+
+  // 5. Spells (casters only).
   if (arch.caster && tier.spellCount > 0) {
     const spells = await findSpells({
       schools: arch.caster.schools,

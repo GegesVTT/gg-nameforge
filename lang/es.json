@@ -82,5 +82,6 @@
   "GGNF.CR.cr9": "CR 9",
   "GGNF.CR.cr10": "CR 10",
   "GGNF.Actor.CreatedSRD": "PNJ creado con kit SRD: {name}",
-  "GGNF.Item.CreatedSRD": "Objeto creado desde SRD: {name}"
+  "GGNF.Item.CreatedSRD": "Objeto creado desde SRD: {name}",
+  "GGNF.Actor.KitPartial": "{name}: no encontré en tus compendios: {missing}. El PNJ se creó igual, sin esas piezas."
 }

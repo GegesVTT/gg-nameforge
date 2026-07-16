@@ -126,15 +126,33 @@ export async function createNPCActor(npc) {
     console.warn(`${MODULE_ID} | SRD kit assembly failed, using bare actor`, err);
   }
 
+  // Spellcasting plumbing: without the casting ability and slot overrides,
+  // embedded spells show on the sheet but the NPC can't actually cast them.
+  const arch = ARCHETYPES[archetype] ?? ARCHETYPES.guard;
+  const casterAbility = arch.caster
+    ? ({ arcane: "int", divine: "wis", primal: "cha" }[arch.caster.type] ?? "int")
+    : null;
+  const spells = {};
+  if (casterAbility && tier.spellCap > 0) {
+    const SLOTS_BY_LEVEL = [0, 4, 3, 3, 3, 2, 1, 1, 1, 1]; // índice = nivel de conjuro
+    for (let lvl = 1; lvl <= Math.min(tier.spellCap, 9); lvl++) {
+      spells[`spell${lvl}`] = { value: SLOTS_BY_LEVEL[lvl], max: SLOTS_BY_LEVEL[lvl], override: SLOTS_BY_LEVEL[lvl] };
+    }
+  }
+
   const data = {
     name,
     type: "npc",
     system: {
       abilities,
-      attributes: {
+      ...(casterAbility ? { attributes: {
+        hp: { value: hp, max: hp },
+        ac: { flat: ac, calc: "flat" },
+        spellcasting: casterAbility
+      }, spells } : { attributes: {
         hp: { value: hp, max: hp },
         ac: { flat: ac, calc: "flat" }
-      },
+      } }),
       details: {
         biography: { value: `<p>${bio}</p><p><em>${archLabel}</em></p>` },
         cr: tier.cr,
@@ -155,7 +173,12 @@ export async function createNPCActor(npc) {
     const actor = await Actor.create(data);
     const msg = kit.usedSRD ? "GGNF.Actor.CreatedSRD" : "GGNF.Actor.Created";
     ui.notifications.info(game.i18n.format(msg, { name }));
-    if (kit.notes.length) console.log(`${MODULE_ID} | kit notes for ${name}:`, kit.notes);
+    if (kit.notes.length) {
+      // Antes esto moría en console.log y en la mesa parecía que "no hacía nada".
+      const missing = kit.notes.map((n) => n.split(":")[1] ?? n).join(", ");
+      ui.notifications.warn(game.i18n.format("GGNF.Actor.KitPartial", { name, missing }));
+      console.log(`${MODULE_ID} | kit notes for ${name}:`, kit.notes);
+    }
     actor?.sheet?.render(true);
     return actor;
   } catch (err) {

@@ -61,7 +61,8 @@ Hooks.on("getSceneControlButtons", (controls) => {
     button:  true,
     order:   101,
     visible: true,
-    onClick: open
+    onClick: open,      // v12
+    onChange: open      // v13+ (los botones disparan onChange)
   };
 
   if (!Array.isArray(controls)) {
