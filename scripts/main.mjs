@@ -61,8 +61,9 @@ Hooks.on("getSceneControlButtons", (controls) => {
     button:  true,
     order:   101,
     visible: true,
-    onClick: open,      // v12
-    onChange: open      // v13+ (los botones disparan onChange)
+    // v13 deprecó onClick en favor de onChange y avisa por consola en cada carga;
+    // v15 lo va a eliminar. Se manda solo el que corresponde a la generación.
+    ...(parseInt(game.version) >= 13 ? { onChange: open } : { onClick: open })
   };
 
   if (!Array.isArray(controls)) {

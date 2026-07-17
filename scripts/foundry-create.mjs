@@ -11,6 +11,7 @@
  */
 
 import { ARCHETYPES, CR_TIERS, assembleSRDKit } from "./srd-kit.mjs";
+import { flavorToBiography, generateFlavor } from "./flavor-tables.mjs";
 
 const MODULE_ID = "gg-nameforge";
 
