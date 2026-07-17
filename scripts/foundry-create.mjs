@@ -87,6 +87,10 @@ export async function createNPCActor(npc) {
 
   const archLabel = game.i18n.localize(`GGNF.Arch.${archetype}`);
   const bio = game.i18n.format("GGNF.Actor.Bio", { race, occupation, trait });
+  // El sabor va a la biografía del actor, así que GG Sheet Export lo levanta
+  // solo y lo imprime en el PDF, el HTML y el Markdown. Sin acoplar los módulos.
+  const flavor = npc.flavor ?? generateFlavor({ archetype, race, lang: game.i18n.lang });
+  const flavorHTML = flavorToBiography(flavor, { occupation, trait });
 
   if (!isDnd5e()) {
     // Agnostic system: name + note only.
@@ -154,7 +158,7 @@ export async function createNPCActor(npc) {
         ac: { flat: ac, calc: "flat" }
       } }),
       details: {
-        biography: { value: `<p>${bio}</p><p><em>${archLabel}</em></p>` },
+        biography: { value: `<p>${bio}</p>\n${flavorHTML}\n<p><em>${archLabel}</em></p>` },
         cr: tier.cr,
         type: { value: "humanoid" }
       },

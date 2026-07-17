@@ -6,6 +6,7 @@
 
 import { NAME_DATA, NPC_FLAVOR, RACES } from "./names-data.mjs";
 import { syllableName } from "./syllables.mjs";
+import { generateFlavor } from "./flavor-tables.mjs";
 import { ARCHETYPE_KEYS, CR_KEYS } from "./srd-kit.mjs";
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -61,7 +62,9 @@ export function generateNPC({
     cr,
     kind: "npc",
     occupation: pick(flavor.occupations),
-    trait: pick(flavor.traits)
+    trait: pick(flavor.traits),
+    // Sabor contextual: se elige según arquetipo y raza, no a ciegas.
+    flavor: generateFlavor({ archetype, race, lang })
   };
 }
 

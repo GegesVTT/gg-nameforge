@@ -83,5 +83,9 @@
   "GGNF.CR.cr10": "CR 10",
   "GGNF.Actor.CreatedSRD": "Created NPC with SRD kit: {name}",
   "GGNF.Item.CreatedSRD": "Created item from SRD: {name}",
-  "GGNF.Actor.KitPartial": "{name}: couldn't find in your compendiums: {missing}. NPC created without those pieces."
+  "GGNF.Actor.KitPartial": "{name}: couldn't find in your compendiums: {missing}. NPC created without those pieces.",
+  "GGNF.Flavor.Looks": "Looks",
+  "GGNF.Flavor.Speaks": "Speaks",
+  "GGNF.Flavor.Quirk": "Quirk",
+  "GGNF.Flavor.Wants": "Wants"
 }

@@ -119,7 +119,16 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
                   : "fa-genderless",
         traitText:  r.trait,
         subtitle:   `${game.i18n.localize(`GGNF.Race.${r.race}`)} · ${r.occupation}`,
-        archLabel: game.i18n.localize(`GGNF.Arch.${r.archetype ?? "guard"}`)
+        archLabel: game.i18n.localize(`GGNF.Arch.${r.archetype ?? "guard"}`),
+        // Sabor: lo mismo que va a la biografía del actor, visible antes de crearlo.
+        flavor: r.flavor
+          ? [
+              { label: game.i18n.localize("GGNF.Flavor.Looks"),  text: r.flavor.appearance },
+              { label: game.i18n.localize("GGNF.Flavor.Speaks"), text: r.flavor.mannerism },
+              { label: game.i18n.localize("GGNF.Flavor.Quirk"),  text: r.flavor.quirk },
+              { label: game.i18n.localize("GGNF.Flavor.Wants"),  text: r.flavor.hook }
+            ].filter((f) => f.text)
+          : null
       };
     }
     return {

@@ -75,6 +75,13 @@
           <div class="ggnf-subtitle">{{this.subtitle}}</div>
           {{#if this.isNPCCard}}
             <div class="ggnf-trait">"{{this.traitText}}"</div>
+            {{#if this.flavor}}
+            <ul class="ggnf-flavor">
+              {{#each this.flavor}}
+              <li><span class="ggnf-flavor-label">{{this.label}}</span> {{this.text}}</li>
+              {{/each}}
+            </ul>
+            {{/if}}
           {{else}}
             <div class="ggnf-trait">{{this.flavorText}}</div>
           {{/if}}
