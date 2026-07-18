@@ -17,6 +17,23 @@ function getApp() {
 }
 
 Hooks.once("init", () => {
+  // De dónde salen los stat blocks: los packs del SRD traen dos versiones del
+  // mismo PNJ (Bandit Captain está en las dos) y cinco de las seis familias
+  // cambian de nombre entre 2014 y 2024. El DM elige cuál manda.
+  game.settings.register(MODULE_ID, "prototypeSource", {
+    name: "GGNF.Settings.PrototypeSource.Name",
+    hint: "GGNF.Settings.PrototypeSource.Hint",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: {
+      modern: "GGNF.Settings.PrototypeSource.Modern",
+      legacy: "GGNF.Settings.PrototypeSource.Legacy",
+      off:    "GGNF.Settings.PrototypeSource.Off"
+    },
+    default: "modern"
+  });
+
   // Language override: auto (follow Foundry), or force EN/ES.
   game.settings.register(MODULE_ID, "language", {
     name: "GGNF.Settings.Language.Name",

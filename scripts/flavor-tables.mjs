@@ -8,7 +8,7 @@
  *
  * STRUCTURE — three layers, merged at pick time:
  *   any        → fits every NPC
- *   <archetype> → guard, bandit, warrior, priest, mage, occultist
+ *   <archetype> → guard, bandit, warrior, wizard, cleric, occultist
  *   <race>      → human, elf, dwarf, halfling, orc, tiefling, dragonborn, gnome
  *
  * Contextual entries (archetype/race) are weighted higher than universal ones,
@@ -57,13 +57,13 @@ export const FLAVOR = {
         "phrases requests as orders",
         "says \"aye\" to things they have no intention of doing"
       ],
-      priest: [
+      cleric: [
         "blesses you at inconvenient moments",
         "quotes scripture slightly wrong",
         "calls you \"child\" regardless of your age",
         "thanks their god for your answers"
       ],
-      mage: [
+      wizard: [
         "corrects your terminology",
         "says \"technically\" before every fact",
         "trails off mid-thought to write something down",
@@ -137,11 +137,11 @@ export const FLAVOR = {
         "old scars, every one of them on the front",
         "armour maintained better than the body inside it"
       ],
-      priest: [
+      cleric: [
         "kneecaps ruined by prayer",
         "a holy symbol worn smooth"
       ],
-      mage: [
+      wizard: [
         "burns on the fingertips only",
         "robes that have never once been washed"
       ],
@@ -222,12 +222,12 @@ export const FLAVOR = {
         "eats standing up",
         "won't take the bed"
       ],
-      priest: [
+      cleric: [
         "apologises to objects they break",
         "fasts on days nobody else observes",
         "blesses the dead of both sides"
       ],
-      mage: [
+      wizard: [
         "tests every rumour with a cantrip",
         "won't touch iron without gloves",
         "takes notes during arguments"
@@ -308,14 +308,14 @@ export const FLAVOR = {
         "is guarding something they weren't told about",
         "wants to teach someone before it's too late"
       ],
-      priest: [
+      cleric: [
         "needs a sin carried out of town",
         "is losing their faith and testing yours",
         "wants a burial done right, and quietly",
         "has a confession that isn't theirs to make",
         "is certain you were sent"
       ],
-      mage: [
+      wizard: [
         "wants a component you happen to be carrying",
         "needs a witness to something that didn't work",
         "is hunting the previous owner of a book",

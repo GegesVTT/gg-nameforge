@@ -5,7 +5,7 @@
 
 const MODULE_ID = "gg-nameforge";
 
-import { generateNPC, RACES, ARCHETYPE_KEYS, CR_KEYS } from "./npc.mjs";
+import { generateNPC, RACES, CR_KEYS } from "./npc.mjs";
 import { generateItem } from "./items.mjs";
 import { createNPCActor, createMagicItem } from "./foundry-create.mjs";
 
@@ -23,7 +23,7 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   #view     = "single";       // "single" | "list"
   #race     = "random";
   #gender   = "random";
-  #archetype = "guard";
+  #combatKind = "martial";   // v2: marcial o lanzador; el arquetipo lo decide el prototipo
   #cr        = "cr1";
   #itemType = "random";
   #results  = [];
@@ -73,7 +73,7 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.#loadFavorites();
 
     const isFav = this.#mode === "favorites";
-    if (!isFav && !this.#results.length) this.#regenerate();
+    if (!isFav && !this.#results.length) await this.#regenerate();
 
     return {
       mode:      this.#mode,
@@ -84,7 +84,7 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       single:    this.#view === "single",
       race:      this.#race,
       gender:    this.#gender,
-      archetype: this.#archetype,
+      combatKind: this.#combatKind,
       cr:        this.#cr,
       itemType:  this.#itemType,
       favCount:  this.#favorites.length,
@@ -94,8 +94,8 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       genders: ["male","female","neutral","random"].map(g => ({
         key: g, label: game.i18n.localize(`GGNF.Gender.${g}`), selected: g === this.#gender
       })),
-      archetypes: ARCHETYPE_KEYS.map(a => ({
-        key: a, label: game.i18n.localize(`GGNF.Arch.${a}`), selected: a === this.#archetype
+      kinds: ["martial", "caster"].map(k => ({
+        key: k, label: game.i18n.localize(`GGNF.Kind.${k}`), selected: k === this.#combatKind
       })),
       crs: CR_KEYS.map(c => ({
         key: c, label: game.i18n.localize(`GGNF.CR.${c}`), selected: c === this.#cr
@@ -119,7 +119,10 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
                   : "fa-genderless",
         traitText:  r.trait,
         subtitle:   `${game.i18n.localize(`GGNF.Race.${r.race}`)} · ${r.occupation}`,
-        archLabel: game.i18n.localize(`GGNF.Arch.${r.archetype ?? "guard"}`),
+        archLabel: r.prototype
+          ? `${r.prototype.name} · CR ${r.prototype.cr}`
+          : game.i18n.localize("GGNF.Card.Generated"),
+        protoImg: r.prototype?.img || null,
         // Sabor: lo mismo que va a la biografía del actor, visible antes de crearlo.
         flavor: r.flavor
           ? [
@@ -141,14 +144,15 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     };
   }
 
-  #regenerate() {
+  // async desde v2: elegir el prototipo implica leer los compendios.
+  async #regenerate() {
     const count = this.#view === "single" ? 1 : 8;
-    this.#results = Array.from({ length: count }, () => {
+    this.#results = await Promise.all(Array.from({ length: count }, async () => {
       if (this.#mode === "npc") {
-        const npc = generateNPC({
+        const npc = await generateNPC({
           race:   this.#race === "random" ? null : this.#race,
           gender: this.#gender,
-          archetype: this.#archetype,
+          kind:   this.#combatKind,
           cr:     this.#cr,
           lang:   this.lang
         });
@@ -158,7 +162,7 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const item = generateItem(this.lang, this.#itemType === "random" ? null : this.#itemType);
       item.kind = "item";
       return item;
-    });
+    }));
   }
 
   #readForm() {
@@ -167,7 +171,7 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (this.#mode === "npc") {
       this.#race   = el.querySelector('[name="race"]')?.value   ?? this.#race;
       this.#gender = el.querySelector('[name="gender"]')?.value ?? this.#gender;
-      this.#archetype = el.querySelector('[name="archetype"]')?.value ?? this.#archetype;
+      this.#combatKind = el.querySelector('[name="kind"]')?.value ?? this.#combatKind;
       this.#cr        = el.querySelector('[name="cr"]')?.value        ?? this.#cr;
     } else if (this.#mode === "item") {
       this.#itemType = el.querySelector('[name="itemType"]')?.value ?? this.#itemType;
@@ -189,9 +193,9 @@ export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.render();
   }
 
-  static #onGenerate() {
+  static async #onGenerate() {
     this.#readForm();
-    this.#regenerate();
+    await this.#regenerate();
     this.render();
   }
 

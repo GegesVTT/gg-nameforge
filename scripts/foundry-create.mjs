@@ -13,6 +13,7 @@
 import { ARCHETYPES, CR_TIERS, assembleSRDKit } from "./srd-kit.mjs";
 import { flavorToBiography, generateFlavor } from "./flavor-tables.mjs";
 
+
 const MODULE_ID = "gg-nameforge";
 
 const randInt = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
@@ -92,6 +93,42 @@ export async function createNPCActor(npc) {
   // solo y lo imprime en el PDF, el HTML y el Markdown. Sin acoplar los módulos.
   const flavor = npc.flavor ?? generateFlavor({ archetype, race, lang: game.i18n.lang });
   const flavorHTML = flavorToBiography(flavor, { occupation, trait });
+
+  /* ── Prototipo oficial ──────────────────────────────────────────────
+     El descriptor ya eligió el stat block (generateNPC lo hace, así la tarjeta
+     puede mostrarlo antes de crear nada). Acá solo se reviste: nombre, sabor y
+     arte nuestros, stat block oficial intacto debajo, y la ficha declara cuál es.
+     El CR queda el REAL del prototipo: si pediste CR 3 y lo más cerca era un
+     Capitán Bandido de CR 2, la ficha dice CR 2. Sin disfraces. */
+  if (npc.prototype && isDnd5e()) {
+    try {
+      const pack = game.packs.get(npc.prototype.pack);
+      const idx = pack ? await pack.getIndex() : null;
+      const hit = idx ? [...idx].find((e) => e.name === npc.prototype.name) : null;
+      const proto = hit ? await pack.getDocument(hit._id) : null;
+      if (proto) {
+        const data = proto.toObject();
+        delete data._id;
+        delete data.folder;
+        data.name = name;
+        foundry.utils.setProperty(data, "prototypeToken.name", name);
+        foundry.utils.setProperty(data, "system.details.biography.value",
+          `<p>${bio}</p>\n${flavorHTML}\n<p><em>${npc.prototype.name} · CR ${npc.prototype.cr}</em></p>`);
+        foundry.utils.setProperty(data, `flags.${MODULE_ID}`, {
+          prototype: npc.prototype.name, pack: npc.prototype.pack,
+          archetype, race, requestedCR: crKey, kind: npc.combatKind ?? null
+        });
+        const actor = await Actor.create(data);
+        ui.notifications.info(game.i18n.format("GGNF.Actor.CreatedFromPrototype",
+          { name, prototype: npc.prototype.name, cr: npc.prototype.cr }));
+        return actor;
+      }
+    } catch (e) {
+      // Si el clonado falla, se genera: mejor un PNJ generado que ninguno.
+      console.warn(`${MODULE_ID} | no pude revestir ${npc.prototype.name}, genero de cero:`, e);
+    }
+  }
+
 
   if (!isDnd5e()) {
     // Agnostic system: name + note only.

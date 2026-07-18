@@ -87,5 +87,15 @@
   "GGNF.Flavor.Looks": "Aspecto",
   "GGNF.Flavor.Speaks": "Habla",
   "GGNF.Flavor.Quirk": "Manía",
-  "GGNF.Flavor.Wants": "Quiere"
+  "GGNF.Flavor.Wants": "Quiere",
+  "GGNF.Actor.CreatedFromPrototype": "{name} creado sobre {prototype} (CR {cr}).",
+  "GGNF.Settings.PrototypeSource.Name": "Origen de los stat blocks",
+  "GGNF.Settings.PrototypeSource.Hint": "Cuando existe un PNJ oficial cercano al CR pedido, se usa su stat block completo (salvaciones, competencias, acciones y reacciones) con el nombre y el sabor generados. Si no hay ninguno cerca, se genera de cero.",
+  "GGNF.Settings.PrototypeSource.Modern": "Modern (SRD 2024) — preferido",
+  "GGNF.Settings.PrototypeSource.Legacy": "Legacy (SRD 2014) — preferido",
+  "GGNF.Settings.PrototypeSource.Off": "Generar siempre de cero",
+  "GGNF.Kind.martial": "Marcial",
+  "GGNF.Kind.caster": "Lanzador",
+  "GGNF.Kind.label": "Tipo",
+  "GGNF.Card.Generated": "generado — no hay stat block oficial para este CR"
 }

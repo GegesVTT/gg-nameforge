@@ -87,5 +87,15 @@
   "GGNF.Flavor.Looks": "Looks",
   "GGNF.Flavor.Speaks": "Speaks",
   "GGNF.Flavor.Quirk": "Quirk",
-  "GGNF.Flavor.Wants": "Wants"
+  "GGNF.Flavor.Wants": "Wants",
+  "GGNF.Actor.CreatedFromPrototype": "{name} built on {prototype} (CR {cr}).",
+  "GGNF.Settings.PrototypeSource.Name": "Stat block source",
+  "GGNF.Settings.PrototypeSource.Hint": "When an official NPC exists near the requested CR, its full stat block is used (saves, skills, actions and reactions) with the generated name and flavor. If nothing is close, the NPC is generated from scratch.",
+  "GGNF.Settings.PrototypeSource.Modern": "Modern (SRD 2024) — preferred",
+  "GGNF.Settings.PrototypeSource.Legacy": "Legacy (SRD 2014) — preferred",
+  "GGNF.Settings.PrototypeSource.Off": "Always generate from scratch",
+  "GGNF.Kind.martial": "Martial",
+  "GGNF.Kind.caster": "Spellcaster",
+  "GGNF.Kind.label": "Kind",
+  "GGNF.Card.Generated": "generated — no official stat block for this CR"
 }
