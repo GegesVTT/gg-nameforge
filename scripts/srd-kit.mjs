@@ -97,7 +97,7 @@ const _indexCache = new Map(); // packId → indexed entries
  *  packs second, module packs last. Without this, an NPC can end up equipped
  *  with a midi-qol sample item or an alchemy ingredient — real case found in
  *  a world with 56 item packs. */
-function itemPacks() {
+export function itemPacks() {
   const rank = (p) =>
     p.metadata.packageType === "system" ? 0 :
     p.metadata.packageType === "world"  ? 1 : 2;
@@ -107,16 +107,16 @@ function itemPacks() {
 }
 
 /** Normalize for matching: lowercase, strip accents and punctuation. */
-function norm(s) {
+export function norm(s) {
   return (s ?? "").toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[''`]/g, "").trim();
 }
 
 /** Load + cache a pack's index (id, name, type). */
-async function getIndex(pack) {
+export async function getIndex(pack) {
   if (_indexCache.has(pack.collection)) return _indexCache.get(pack.collection);
-  const idx = await pack.getIndex({ fields: ["type", "system.level", "system.school", "system.rarity"] });
+  const idx = await pack.getIndex({ fields: ["type", "system.level", "system.school", "system.rarity", "system.type.value"] });
   const arr = [...idx];
   _indexCache.set(pack.collection, arr);
   return arr;
@@ -209,7 +209,7 @@ const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
  * Returns { items: [itemData...], usedSRD: bool, notes: [...] }.
  * Each itemData is a plain object ready for Actor.create({ items: [...] }).
  */
-export async function assembleSRDKit(archetypeKey, crKey) {
+export async function assembleSRDKit(archetypeKey, crKey, { skipSpells = false } = {}) {
   if (!isDnd5e()) return { items: [], usedSRD: false, notes: [] };
 
   const arch = ARCHETYPES[archetypeKey] ?? ARCHETYPES.guard;
@@ -261,8 +261,10 @@ export async function assembleSRDKit(archetypeKey, crKey) {
     }
   }
 
-  // 5. Spells (casters only).
-  if (arch.caster && tier.spellCount > 0) {
+  // 5. Spells (casters only). Desde v2.1 el spellbook coherente por CR
+  //    (spellbook.mjs) reemplaza esta ruta; esto queda como red de seguridad
+  //    cuando aquel no encuentra nada.
+  if (!skipSpells && arch.caster && tier.spellCount > 0) {
     const spells = await findSpells({
       schools: arch.caster.schools,
       maxLevel: tier.spellCap,

@@ -20,7 +20,10 @@ const ITEM_DATA = {
     },
     adjectives: ["Ancient", "Burning", "Whispering", "Frozen", "Radiant", "Shadowed", "Vengeful", "Sacred", "Cursed", "Gleaming", "Howling", "Eternal", "Forgotten", "Bloodbound"],
     effects: ["Embers", "the Tides", "Whispers", "the Fallen Star", "Storms", "the Deep", "Ash", "the First Dawn", "Silence", "the Wyrm", "Frost", "the Veil", "Thorns", "the Moon"],
-    flavors: ["faintly warm to the touch", "hums when danger is near", "whispers names of the dead", "leaves frost on whatever it rests upon", "glows brighter in darkness", "feels heavier when you lie", "smells of rain and old stone", "shows brief visions of the past", "is never quite where you left it", "grows cold around the unworthy"]
+    // Se presentan como rumor ("They say it ...") para que nadie las lea como
+    // propiedades mecánicas identificadas. Todas arrancan con verbo en 3ª.
+    rumorPrefix: "They say it",
+    flavors: ["is faintly warm to the touch", "hums when danger is near", "whispers names of the dead", "leaves frost on whatever it rests upon", "glows brighter in darkness", "feels heavier when you lie", "smells of rain and old stone", "shows brief visions of the past", "is never quite where you left it", "grows cold around the unworthy", "was pulled from a riverbed that no map shows", "once belonged to someone who died twice", "refuses to gather dust", "casts a shadow a heartbeat late", "tastes of copper if you kiss it, and some do", "was buried with its maker, briefly", "attracts moths in broad daylight", "has been sold seven times and returned six"]
   },
   es: {
     types: {
@@ -36,7 +39,9 @@ const ITEM_DATA = {
     adjectives: [["Ancestral","Ancestral"],["Ardiente","Ardiente"],["Susurrante","Susurrante"],["Helado","Helada"],["Radiante","Radiante"],["Sombrío","Sombría"],["Vengativo","Vengativa"],["Sagrado","Sagrada"],["Maldito","Maldita"],["Reluciente","Reluciente"],["Aullante","Aullante"],["Eterno","Eterna"],["Olvidado","Olvidada"],["Sangrevinculado","Sangrevinculada"]],
     // Effects carry the leading article so we can contract "de el" -> "del".
     effects: ["las Brasas", "las Mareas", "los Susurros", "la Estrella Caída", "las Tormentas", "las Profundidades", "la Ceniza", "el Primer Alba", "el Silencio", "el Wyrm", "la Escarcha", "el Velo", "las Espinas", "la Luna"],
-    flavors: ["levemente cálido al tacto", "zumba cuando el peligro acecha", "susurra nombres de los muertos", "deja escarcha sobre lo que toca", "brilla más en la oscuridad", "pesa más cuando mientes", "huele a lluvia y piedra vieja", "muestra breves visiones del pasado", "nunca está donde lo dejaste", "se enfría cerca de los indignos"]
+    // Formato rumor: "Dicen que ..." — todas arrancan con verbo conjugado.
+    rumorPrefix: "Dicen que",
+    flavors: ["es levemente cálido al tacto", "zumba cuando el peligro acecha", "susurra nombres de los muertos", "deja escarcha sobre lo que toca", "brilla más en la oscuridad", "pesa más cuando mientes", "huele a lluvia y piedra vieja", "muestra breves visiones del pasado", "nunca está donde lo dejaste", "se enfría cerca de los indignos", "fue sacado de un lecho de río que ningún mapa muestra", "perteneció a alguien que murió dos veces", "se niega a juntar polvo", "proyecta su sombra un latido tarde", "sabe a cobre si lo besás, y hay quien lo hace", "fue enterrado con su artesano, por poco tiempo", "atrae polillas a plena luz del día", "se vendió siete veces y volvió seis"]
   }
 };
 
@@ -46,6 +51,41 @@ const RARITY_TOTAL = RARITY_WEIGHTS.reduce((a, b) => a + b, 0);
 const DND5E_RARITY = { common: "common", uncommon: "uncommon", rare: "rare", veryRare: "veryRare", legendary: "legendary" };
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+/* Taglines sin repetir dentro de la sesión: el pool era chico y dos ítems
+ * seguidos salían con "muestra breves visiones del pasado". Cuando se agota,
+ * se resetea. */
+const _usedFlavors = new Set();
+function pickFlavor(data) {
+  const fresh = data.flavors.filter((f) => !_usedFlavors.has(f));
+  const src = fresh.length ? fresh : (data.flavors.forEach((f) => _usedFlavors.delete(f)), data.flavors);
+  const f = pick(src);
+  _usedFlavors.add(f);
+  return `${data.rumorPrefix} ${f}.`;
+}
+
+/** Género gramatical heurístico para sustantivos no curados (reconstrucción
+ *  de nombres sobre el sustantivo del ítem base, que puede venir en cualquier
+ *  idioma): terminación en -a/-as → femenino, el resto masculino. */
+export function esNounGender(noun) {
+  return /(?:a|as)$/i.test((noun ?? "").trim()) ? "f" : "m";
+}
+
+/**
+ * Reconstruye el nombre generado con un sustantivo fijo (el del objeto físico
+ * real que se va a revestir), conservando patrón, adjetivo y efecto.
+ * "The Burning Brew" + base "Bowl of Commanding Water Elementals"
+ *   → "The Burning Bowl". Basta de brebajes que son cuencos.
+ */
+export function rebuildItemName(nameParts, noun) {
+  if (!nameParts || !noun) return null;
+  if (nameParts.lang === "es") {
+    return buildNameEsFixed(nameParts.adjPair, [noun, esNounGender(noun)], nameParts.effect, nameParts.pattern);
+  }
+  return nameParts.pattern === "effect"
+    ? `${noun} of ${nameParts.effect}`
+    : `The ${nameParts.adj} ${noun}`;
+}
 
 function weightedRarity() {
   let r = Math.random() * RARITY_TOTAL;
@@ -62,16 +102,16 @@ function withPreposition(effect) {
   return `de ${effect}`;
 }
 
-function buildNameEn(adj, noun, effect) {
-  return Math.random() < 0.5 ? `${noun} of ${effect}` : `The ${adj} ${noun}`;
+function buildNameEn(adj, noun, effect, pattern) {
+  return pattern === "effect" ? `${noun} of ${effect}` : `The ${adj} ${noun}`;
 }
 
-function buildNameEs(adjPair, nounPair, effect) {
+function buildNameEsFixed(adjPair, nounPair, effect, pattern) {
   const [noun, gender] = nounPair;
   const adj = gender === "f" ? adjPair[1] : adjPair[0];
-  return Math.random() < 0.5
-    ? `${noun} ${adj}`
-    : `${noun} ${withPreposition(effect)}`;
+  return pattern === "effect"
+    ? `${noun} ${withPreposition(effect)}`
+    : `${noun} ${adj}`;
 }
 
 /**
@@ -88,10 +128,11 @@ export function generateItem(lang = "en", type = null) {
   const adjEntry = pick(data.adjectives);
   const effect = pick(data.effects);
   const rarity = weightedRarity();
+  const pattern = Math.random() < 0.5 ? "effect" : "adj";
 
   const name = isEs
-    ? buildNameEs(adjEntry, nounEntry, effect)
-    : buildNameEn(adjEntry, nounEntry, effect);
+    ? buildNameEsFixed(adjEntry, nounEntry, effect, pattern)
+    : buildNameEn(adjEntry, nounEntry, effect, pattern);
 
   return {
     name,
@@ -100,7 +141,16 @@ export function generateItem(lang = "en", type = null) {
     icon: typeDef.icon,
     rarity,
     dnd5eRarity: DND5E_RARITY[rarity],
-    flavor: pick(data.flavors)
+    flavor: pickFlavor(data),
+    // Piezas del nombre: la creación puede reconstruirlo con el sustantivo
+    // del objeto real (ver rebuildItemName y foundry-create.mjs).
+    nameParts: {
+      lang: isEs ? "es" : "en",
+      pattern,
+      adj: isEs ? null : adjEntry,
+      adjPair: isEs ? adjEntry : null,
+      effect
+    }
   };
 }
 

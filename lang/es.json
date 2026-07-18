@@ -97,5 +97,8 @@
   "GGNF.Kind.martial": "Marcial",
   "GGNF.Kind.caster": "Lanzador",
   "GGNF.Kind.label": "Tipo",
-  "GGNF.Card.Generated": "generado — no hay stat block oficial para este CR"
+  "GGNF.Card.Generated": "generado — no hay stat block oficial para este CR",
+  "GGNF.Actor.CRAdjusted": "{name}: pediste CR {requested}; el stat block oficial más cercano es CR {actual}.",
+  "GGNF.Actor.SpellbookBoosted": "{name}: libro de conjuros reforzado — CR efectivo elevado a {cr} (stat block base CR {base}).",
+  "GGNF.Actor.BioBoost": "libro de conjuros reforzado hasta CR {cr}"
 }

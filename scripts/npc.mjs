@@ -49,23 +49,51 @@ export function generateSurname(race, lang = "en") {
  * Es async porque mirar los compendios lo es. La tarjeta muestra qué prototipo
  * salió antes de crear nada.
  */
+/* Profesiones compatibles por arquetipo (índices sobre NPC_FLAVOR.occupations,
+ * que es paralela EN/ES). Antes se elegía a ciegas y salían bandidos-sacerdotes:
+ * "A dragonborn priest, deeply pious" con stat block de Capitán Bandido. */
+const OCCUPATIONS_BY_ARCHETYPE = {
+  guard:     [4, 13, 0, 5, 9],        // guardia, mercenario, herrero, cazador, marinero
+  warrior:   [13, 4, 0, 5, 9],
+  bandit:    [8, 13, 9, 5, 3, 16],    // ladrón, mercenario, marinero, cazador, mercader, curtidor
+  cleric:    [7, 11, 12, 17],         // sacerdote, sanador, escriba, herborista
+  wizard:    [6, 12, 11, 3],          // erudito, escriba, sanador, mercader
+  occultist: [17, 11, 5, 6]           // herborista, sanador, cazador, erudito
+};
+
+function pickOccupation(occupations, archetype) {
+  const idx = OCCUPATIONS_BY_ARCHETYPE[archetype];
+  if (!idx) return pick(occupations);
+  const compat = idx.map((i) => occupations[i]).filter(Boolean);
+  return compat.length ? pick(compat) : pick(occupations);
+}
+
 export async function generateNPC({
   race = "human", gender = "male", lang = "en", withSurname = true,
-  kind = "martial", cr = "cr1", ruleset = "modern"
+  kind = "martial", cr = "cr1", ruleset = null
 } = {}) {
   if (race == null || race === "random") race = pick(RACES);
   if (gender === "random") gender = pick(["male", "female", "neutral"]);
   if (kind === "random") kind = pick(["martial", "caster"]);
+
+  // El setting "Stat block source" existía pero nadie lo leía: siempre corría
+  // en "modern" y el "off" no apagaba nada. Ahora manda, salvo override por API.
+  if (!ruleset) {
+    try { ruleset = game.settings.get("gg-nameforge", "prototypeSource"); }
+    catch { ruleset = "modern"; }
+  }
 
   // El prototipo decide el arquetipo. Si no hay ninguno cerca del CR pedido
   // (no existen lanzadores humanoides en CR 1, 4, 8, 9 ni 10), se genera y se
   // elige un arquetipo compatible con el tipo pedido.
   let prototype = null;
   const crValue = CR_TIERS[cr]?.cr ?? 1;
-  try {
-    prototype = await pickPrototype({ cr: crValue, race, kind, RACES, ruleset });
-  } catch (e) {
-    console.warn("gg-nameforge | falló la búsqueda de prototipo:", e);
+  if (ruleset !== "off") {
+    try {
+      prototype = await pickPrototype({ cr: crValue, race, kind, RACES, ruleset });
+    } catch (e) {
+      console.warn("gg-nameforge | falló la búsqueda de prototipo:", e);
+    }
   }
   const archetype = prototype?.archetype
     ?? (kind === "caster" ? pick(["cleric", "wizard", "occultist"]) : pick(["guard", "bandit", "warrior"]));
@@ -84,7 +112,7 @@ export async function generateNPC({
     archetype,
     cr,
     kind: "npc",
-    occupation: pick(flavor.occupations),
+    occupation: pickOccupation(flavor.occupations, archetype),
     trait: pick(flavor.traits),
     // Sabor contextual: se elige según arquetipo y raza, no a ciegas.
     flavor: generateFlavor({ archetype, race, lang }),

@@ -10,8 +10,18 @@
  * otherwise creates a typed item with the flavor description.
  */
 
-import { ARCHETYPES, CR_TIERS, assembleSRDKit } from "./srd-kit.mjs";
+import { ARCHETYPES, CR_TIERS, assembleSRDKit, itemPacks, getIndex, norm } from "./srd-kit.mjs";
 import { flavorToBiography, generateFlavor } from "./flavor-tables.mjs";
+import { buildSpellbook } from "./spellbook.mjs";
+import { sanitizeEmbeddedItems, applyRacialLayer, physicalCategory, CATEGORY_FOR_TYPE, leadingNoun, slugify } from "./reskin.mjs";
+import { rebuildItemName } from "./items.mjs";
+
+/** "1/4" en vez de "0.25" en notificaciones. */
+const crLabel = (n) => ({ 0.125: "1/8", 0.25: "1/4", 0.5: "1/2" }[n] ?? String(n));
+const escRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const raceLabelOf = (race) => {
+  try { return game.i18n.localize(`GGNF.Race.${race}`); } catch { return race; }
+};
 
 
 const MODULE_ID = "gg-nameforge";
@@ -112,15 +122,75 @@ export async function createNPCActor(npc) {
         delete data.folder;
         data.name = name;
         foundry.utils.setProperty(data, "prototypeToken.name", name);
+
+        /* Sanitización: los ítems de los packs de 2014 nombran al PNJ original
+           ("The captain makes three melee attacks") y delatan el reskin en el
+           chat. Los de 2024 usan [[lookup @name lowercase]] y no lo necesitan. */
+        const given = npc.given ?? name.split(/\s+/)[0];
+        sanitizeEmbeddedItems(data.items, npc.prototype.name, given);
+
+        // Capa racial mínima: idiomas + sentidos + units normalizadas.
+        // (La ruta actors24 dejaba movement.units y senses.units en null.)
+        applyRacialLayer(data.system, race, raceLabelOf(race));
+
+        /* Refuerzo de spellbook: si pediste un lanzador de CR mayor al del
+           stat block más cercano, se extienden slots y conjuros hasta el nivel
+           de lanzador del CR pedido — sube la competencia sin tocar la base.
+           El CR declarado sube a mitad de camino: los conjuros son la mitad
+           de la ecuación ofensiva del DMG, no toda. */
+        const reqTier = CR_TIERS[crKey] ?? CR_TIERS.cr1;
+        let finalCR = npc.prototype.cr;
+        let boosted = false;
+        if (npc.combatKind === "caster" && reqTier.cr > npc.prototype.cr) {
+          try {
+            const existing = new Set((data.items ?? [])
+              .filter((i) => i.type === "spell").map((i) => norm(i.name)));
+            const sb = await buildSpellbook({ archetype, crKey, excludeNames: existing });
+            if (sb?.docs?.length) {
+              for (const d of sb.docs) data.items.push(d.toObject());
+              data.system.spells ??= {};
+              for (const [k, v] of Object.entries(sb.slots)) {
+                const cur = data.system.spells[k] ?? {};
+                const curMax = Math.max(Number(cur.max) || 0, Number(cur.override) || 0);
+                if (v.max > curMax) data.system.spells[k] = v;
+              }
+              // actors24 deja spellcasting en "str" por defecto: corregir.
+              const cast = data.system.attributes?.spellcasting;
+              if (!cast || cast === "str") {
+                foundry.utils.setProperty(data, "system.attributes.spellcasting", sb.ability);
+              }
+              finalCR = Math.min(reqTier.cr,
+                npc.prototype.cr + Math.ceil((reqTier.cr - npc.prototype.cr) / 2));
+              foundry.utils.setProperty(data, "system.details.cr", finalCR);
+              boosted = true;
+            }
+          } catch (e) {
+            console.warn(`${MODULE_ID} | no pude reforzar el spellbook:`, e);
+          }
+        }
+
+        const bioTag = boosted
+          ? `${npc.prototype.name} · CR ${crLabel(npc.prototype.cr)} · ${game.i18n.format("GGNF.Actor.BioBoost", { cr: crLabel(finalCR) })}`
+          : `${npc.prototype.name} · CR ${crLabel(npc.prototype.cr)}`;
         foundry.utils.setProperty(data, "system.details.biography.value",
-          `<p>${bio}</p>\n${flavorHTML}\n<p><em>${npc.prototype.name} · CR ${npc.prototype.cr}</em></p>`);
+          `<p>${bio}</p>\n${flavorHTML}\n<p><em>${bioTag}</em></p>`);
         foundry.utils.setProperty(data, `flags.${MODULE_ID}`, {
+          source: "prototype",
           prototype: npc.prototype.name, pack: npc.prototype.pack,
-          archetype, race, requestedCR: crKey, kind: npc.combatKind ?? null
+          archetype, race, kind: npc.combatKind ?? null,
+          requestedCR: crKey, actualCR: finalCR, baseCR: npc.prototype.cr,
+          spellbookBoost: boosted
         });
         const actor = await Actor.create(data);
         ui.notifications.info(game.i18n.format("GGNF.Actor.CreatedFromPrototype",
-          { name, prototype: npc.prototype.name, cr: npc.prototype.cr }));
+          { name, prototype: npc.prototype.name, cr: crLabel(finalCR) }));
+        if (boosted) {
+          ui.notifications.info(game.i18n.format("GGNF.Actor.SpellbookBoosted",
+            { name, cr: crLabel(finalCR), base: crLabel(npc.prototype.cr) }));
+        } else if (finalCR !== reqTier.cr) {
+          ui.notifications.warn(game.i18n.format("GGNF.Actor.CRAdjusted",
+            { name, requested: crLabel(reqTier.cr), actual: crLabel(finalCR) }));
+        }
         return actor;
       }
     } catch (e) {
@@ -160,22 +230,34 @@ export async function createNPCActor(npc) {
   const ac = baseAC(archetype, dexMod);
   const defenses = buildDefenses(archetype, tier);
 
-  // Assemble SRD kit (weapons, armor, focus, spells) if content is present.
+  /* Spellbook coherente por CR (v2.1): reemplaza la selección vieja por nivel
+     + escuela, que era casi determinista y regalaba slots sin conjuros. Si el
+     spellbook no encuentra nada (packs raros), assembleSRDKit conserva la ruta
+     anterior como red de seguridad. */
+  const arch = ARCHETYPES[archetype] ?? ARCHETYPES.guard;
+  let spellbook = null;
+  if (arch.caster) {
+    try { spellbook = await buildSpellbook({ archetype, crKey }); }
+    catch (err) { console.warn(`${MODULE_ID} | spellbook build failed`, err); }
+  }
+
+  // Assemble SRD kit (weapons, armor, focus) if content is present.
   let kit = { items: [], usedSRD: false, notes: [] };
   try {
-    kit = await assembleSRDKit(archetype, crKey);
+    kit = await assembleSRDKit(archetype, crKey, { skipSpells: !!spellbook?.docs?.length });
   } catch (err) {
     console.warn(`${MODULE_ID} | SRD kit assembly failed, using bare actor`, err);
   }
 
   // Spellcasting plumbing: without the casting ability and slot overrides,
   // embedded spells show on the sheet but the NPC can't actually cast them.
-  const arch = ARCHETYPES[archetype] ?? ARCHETYPES.guard;
-  const casterAbility = arch.caster
+  const casterAbility = spellbook?.ability ?? (arch.caster
     ? ({ arcane: "int", divine: "wis", primal: "cha" }[arch.caster.type] ?? "int")
-    : null;
+    : null);
   const spells = {};
-  if (casterAbility && tier.spellCap > 0) {
+  if (spellbook) {
+    Object.assign(spells, spellbook.slots);
+  } else if (casterAbility && tier.spellCap > 0) {
     const SLOTS_BY_LEVEL = [0, 4, 3, 3, 3, 2, 1, 1, 1, 1]; // índice = nivel de conjuro
     for (let lvl = 1; lvl <= Math.min(tier.spellCap, 9); lvl++) {
       spells[`spell${lvl}`] = { value: SLOTS_BY_LEVEL[lvl], max: SLOTS_BY_LEVEL[lvl], override: SLOTS_BY_LEVEL[lvl] };
@@ -207,9 +289,16 @@ export async function createNPCActor(npc) {
         ci: { value: defenses.ci }    // condition immunities
       }
     },
-    items: kit.items,
-    flags: { [MODULE_ID]: { generated: true, race, archetype, cr: crKey, usedSRD: kit.usedSRD } }
+    items: [...kit.items, ...(spellbook?.docs ?? []).map((d) => d.toObject())],
+    flags: { [MODULE_ID]: {
+      generated: true, source: "generated",
+      archetype, race, kind: npc.combatKind ?? null,
+      requestedCR: crKey, actualCR: tier.cr, usedSRD: kit.usedSRD
+    } }
   };
+
+  // Capa racial + normalización (movement/senses en ft, idiomas, raza).
+  applyRacialLayer(data.system, race, raceLabelOf(race));
 
   try {
     const actor = await Actor.create(data);
@@ -232,25 +321,37 @@ export async function createNPCActor(npc) {
 
 /* ── Magic items ─────────────────────────────────────────────────────────── */
 
-/** Try to find a real SRD magic item of a compatible type to reskin. */
+/**
+ * Busca un ítem mágico real compatible para revestir.
+ * v2.1: filtra por CATEGORÍA FÍSICA (subtipo dnd5e, idioma-independiente), no
+ * solo por tipo de documento. Antes "potion" podía devolver un cuenco de un
+ * pie de diámetro (consumable/trinket) y el nombre generado decía "Brew".
+ * Segunda pasada laxa si la categoría exacta no existe en los packs: el nombre
+ * se reconstruye después con el sustantivo del objeto real, así que nunca
+ * miente. Se usa itemPacks(): sistema primero, módulos al final.
+ */
 async function findSRDMagicItem(itemType) {
   if (!isDnd5e()) return null;
+  const wantCats = CATEGORY_FOR_TYPE[itemType] ?? ["wondrous"];
   const TYPE_MATCH = {
     weapon: ["weapon"], armor: ["equipment"], potion: ["consumable"],
     ring: ["equipment"], wand: ["consumable", "equipment"],
     scroll: ["consumable"], wondrous: ["equipment", "consumable"]
   };
   const wantTypes = TYPE_MATCH[itemType] ?? ["equipment"];
-  for (const pack of game.packs.filter(p => p.metadata.type === "Item")) {
-    let idx;
-    try { idx = await pack.getIndex({ fields: ["type", "system.rarity"] }); } catch { continue; }
-    const magic = [...idx].filter(e =>
-      wantTypes.includes(e.type) &&
-      e.system?.rarity && e.system.rarity !== "common" && e.system.rarity !== ""
-    );
-    if (magic.length) {
-      const hit = magic[Math.floor(Math.random() * magic.length)];
-      try { return await pack.getDocument(hit._id); } catch { /* keep looking */ }
+  for (const strict of [true, false]) {
+    for (const pack of itemPacks()) {
+      let idx;
+      try { idx = await getIndex(pack); } catch { continue; }
+      const magic = idx.filter(e =>
+        wantTypes.includes(e.type) &&
+        e.system?.rarity && e.system.rarity !== "common" && e.system.rarity !== "" &&
+        (!strict || wantCats.includes(physicalCategory(e)))
+      );
+      if (magic.length) {
+        const hit = magic[Math.floor(Math.random() * magic.length)];
+        try { return await pack.getDocument(hit._id); } catch { /* keep looking */ }
+      }
     }
   }
   return null;
@@ -272,14 +373,31 @@ export async function createMagicItem(item) {
     const srd = await findSRDMagicItem(itemType);
     if (srd) {
       const obj = srd.toObject();
-      obj.name = name;
-      const prevDesc = obj.system?.description?.value ?? "";
+      delete obj._id;
+      delete obj.folder;
+
+      /* El sustantivo del nombre sale del objeto físico REAL: si el base es
+         "Figurine of Wondrous Power", el nombre generado se reconstruye sobre
+         "Figurine" conservando adjetivo/efecto ("The Ancient Figurine"). Basta
+         de batones que son estatuillas de cuervo. */
+      const noun = leadingNoun(srd.name);
+      const finalName = (noun && rebuildItemName(item.nameParts, noun)) || name;
+      obj.name = finalName;
+
+      // La descripción menciona el nombre original: reemplazarlo. El
+      // identifier delataba el ítem base con un click: slug del nombre nuevo.
+      let prevDesc = obj.system?.description?.value ?? "";
+      if (srd.name) {
+        prevDesc = prevDesc.replace(new RegExp(escRe(srd.name), "gi"), finalName);
+      }
       obj.system = obj.system ?? {};
       obj.system.description = { value: `<p><em>${flavor}</em></p><hr>${prevDesc}` };
-      obj.flags = { ...(obj.flags ?? {}), [MODULE_ID]: { generated: true, reskinned: true } };
+      if (obj.system.identifier) obj.system.identifier = slugify(finalName);
+      // baseItem queda en flags: solo el GM inspecciona flags, y sirve para depurar.
+      obj.flags = { ...(obj.flags ?? {}), [MODULE_ID]: { generated: true, reskinned: true, baseItem: srd.name } };
       try {
         const created = await Item.create(obj);
-        ui.notifications.info(game.i18n.format("GGNF.Item.CreatedSRD", { name }));
+        ui.notifications.info(game.i18n.format("GGNF.Item.CreatedSRD", { name: finalName }));
         created?.sheet?.render(true);
         return created;
       } catch (err) {

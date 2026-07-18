@@ -97,5 +97,8 @@
   "GGNF.Kind.martial": "Martial",
   "GGNF.Kind.caster": "Spellcaster",
   "GGNF.Kind.label": "Kind",
-  "GGNF.Card.Generated": "generated — no official stat block for this CR"
+  "GGNF.Card.Generated": "generated — no official stat block for this CR",
+  "GGNF.Actor.CRAdjusted": "{name}: requested CR {requested}; the closest official stat block is CR {actual}.",
+  "GGNF.Actor.SpellbookBoosted": "{name}: spellbook reinforced — effective CR raised to {cr} (base stat block CR {base}).",
+  "GGNF.Actor.BioBoost": "spellbook reinforced to CR {cr}"
 }
