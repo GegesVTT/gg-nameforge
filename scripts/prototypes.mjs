@@ -174,6 +174,30 @@ export async function pickPrototype({ cr, race = "human", kind = "martial", RACE
   };
 }
 
+/* Nombres que sugieren rol, para elegir arte de respaldo sin abrir documentos. */
+const CASTER_ART = /mage|archmage|wizard|apprentice|sorcer|priest|acolyte|cleric|druid|cult|warlock|occult/i;
+const MARTIAL_ART = /guard|bandit|thug|tough|soldier|knight|veteran|warrior|berserker|gladiator|scout|spy|commoner|noble/i;
+
+/**
+ * Arte de respaldo para un actor sin token: se toma prestada la imagen de un
+ * humanoide del catálogo que encaje con el rol pedido. Preferencia: un
+ * prototipo cuyo subtipo coincida con la raza (enano→Duergar), después uno
+ * cuyo nombre sugiera el mismo rol, después cualquier humanoide con arte.
+ * Caso real: el Tough Boss de actors24 viene sin token y el PNJ quedaba con
+ * el mystery-man; y toda la ruta generada quedaba con el npc.svg pelado.
+ */
+export async function pickFallbackArt({ race = "human", kind = "martial" } = {}) {
+  let cat;
+  try { cat = await buildCatalog(); } catch { return null; }
+  const conArte = cat.filter((c) => c.img && !c.img.includes("mystery-man") && !c.img.endsWith(".svg"));
+  if (!conArte.length) return null;
+  const rolOk = (c) => (kind === "caster" ? CASTER_ART : MARTIAL_ART).test(c.name);
+  const porRaza = conArte.filter((c) => c.subtype && c.subtype === norm(race));
+  const porRol = conArte.filter(rolOk);
+  const pool = (porRaza.length && Math.random() < 0.5) ? porRaza : (porRol.length ? porRol : conArte);
+  return pool[Math.floor(Math.random() * pool.length)].img || null;
+}
+
 /** Diagnóstico (lo usa el test de matriz). */
 export async function catalogSummary() {
   const cat = await buildCatalog();

@@ -21,6 +21,8 @@
  * who was doing something before you walked in.
  */
 
+import { genT } from "./i18n.mjs";
+
 export const FLAVOR = {
   en: {
     /* ── How they speak ── */
@@ -330,6 +332,315 @@ export const FLAVOR = {
         "knows what's under the town"
       ]
     }
+  },
+  es: {
+    /* ── Cómo hablan ── */
+    mannerisms: {
+      any: [
+        "termina una oración de cada dos con «...¿me sigues?»",
+        "repite tus últimas tres palabras antes de contestar",
+        "habla justo por debajo del susurro, para que tengas que acercarte",
+        "se ríe de sus propios chistes medio segundo antes de tiempo",
+        "llama a todos «amigo» sin ninguna calidez",
+        "responde preguntas con preguntas",
+        "hace una pausa de más antes de decir que sí",
+        "le habla a tu pecho, nunca a tu cara",
+        "narra sus propias acciones en voz alta",
+        "se pone formal cuando está nervioso, y no lo nota",
+        "dice «supuestamente» de cosas que vio con sus propios ojos",
+        "se queda a mitad de frase si lo interrumpen y nunca la retoma"
+      ],
+      guard: [
+        "cita reglamentos por número",
+        "usa «circulando» como saludo",
+        "se dirige a todos como «ciudadano»",
+        "antecede las malas noticias con «el protocolo dice»"
+      ],
+      bandit: [
+        "escupe antes de hablar",
+        "te llama por un nombre que no es el tuyo, a propósito",
+        "le pone precio a todo en voz alta",
+        "dice «sin ofender» justo después de ofender"
+      ],
+      warrior: [
+        "cuenta hasta tres antes de responder cualquier cosa",
+        "mide tu arma a mitad de frase",
+        "formula los pedidos como órdenes",
+        "dice «claro» a cosas que no piensa hacer"
+      ],
+      cleric: [
+        "te bendice en los momentos menos oportunos",
+        "cita las escrituras ligeramente mal",
+        "te llama «criatura» sin importar tu edad",
+        "agradece a su dios por tus respuestas"
+      ],
+      wizard: [
+        "corrige tu terminología",
+        "dice «técnicamente» antes de cada dato",
+        "se queda a mitad de idea para anotar algo",
+        "explica cosas que nadie preguntó"
+      ],
+      occultist: [
+        "le habla al clima como si pudiera oírlo",
+        "habla de sí en tercera persona",
+        "te advierte sobre algo que nunca mencionaste",
+        "se queda en silencio cuando hay animales cerca"
+      ],
+      human: [
+        "menciona conocidos importantes sin ningún pudor",
+        "mide el tiempo en cosechas"
+      ],
+      elf: [
+        "hace pausas como consultando una memoria mucho más larga",
+        "usa tu nombre completo absolutamente siempre"
+      ],
+      dwarf: [
+        "jura por un ancestro del que nunca oíste hablar",
+        "mide todo en pesos de piedra"
+      ],
+      halfling: [
+        "te ofrece comida antes de responder cualquier cosa",
+        "subestima todo a la mitad"
+      ],
+      orc: [
+        "dice exactamente lo que piensa y ni una palabra más",
+        "habla de las armas como otros hablan de las personas"
+      ],
+      tiefling: [
+        "responde a la acusación que no hiciste",
+        "esquiva con un chiste sobre sí mismo"
+      ],
+      dragonborn: [
+        "declara su clan antes que su opinión",
+        "no abrevia nunca: cada palabra completa, cada título entero"
+      ],
+      gnome: [
+        "se va por tres tangentes por respuesta",
+        "inventa palabras y espera que le sigas el ritmo"
+      ]
+    },
+
+    /* ── Lo primero que notas ── */
+    appearance: {
+      any: [
+        "una oreja mordida y mal cicatrizada",
+        "manchas de tinta que ya nunca van a salir",
+        "una quemadura con forma de mano",
+        "ojos que no miran del todo al mismo lado",
+        "una nariz rota y mal acomodada",
+        "dientes limados en punta",
+        "le falta un dedo, desde hace poco",
+        "pelo cortado a cuchillo, claramente obra propia",
+        "huele a incienso barato",
+        "un temblor en la mano izquierda, mantenido a raya",
+        "ropa un talle más grande, tomada de alguien",
+        "una risa que muestra demasiada encía"
+      ],
+      guard: [
+        "un yelmo que nunca le quedó bien",
+        "tabardo impecable, botas arruinadas"
+      ],
+      bandit: [
+        "tres cuchillos a la vista, a propósito",
+        "el buen abrigo de otra persona"
+      ],
+      warrior: [
+        "cicatrices viejas, todas de frente",
+        "una armadura mejor mantenida que el cuerpo que la lleva"
+      ],
+      cleric: [
+        "rodillas arruinadas de tanto rezar",
+        "un símbolo sagrado gastado de tanto tocarlo"
+      ],
+      wizard: [
+        "quemaduras solo en las yemas de los dedos",
+        "una túnica que no se lavó ni una sola vez"
+      ],
+      occultist: [
+        "mugre que ya es parte de la piel",
+        "algo vivo en el pelo"
+      ],
+      human: [
+        "un bronceado que nunca se va del todo",
+        "una alianza colgada de un cordel",
+        "manos mucho más viejas que la cara"
+      ],
+      elf: [
+        "canas en las sienes, que todavía no deberían ser posibles",
+        "una cicatriz más vieja que la ciudad",
+        "se mueve como si nada costara esfuerzo"
+      ],
+      dwarf: [
+        "una barba trenzada con anillos ajenos",
+        "quemaduras de forja en ambos antebrazos",
+        "una nariz que conoció tres mesas"
+      ],
+      halfling: [
+        "descalzo a perpetuidad, limpio a perpetuidad",
+        "harina en cada pliegue",
+        "un abrigo con demasiados bolsillos"
+      ],
+      orc: [
+        "colmillos con casquillos de plata",
+        "una marca de hierro mantenida bien visible",
+        "nudillos como cantos de río"
+      ],
+      tiefling: [
+        "cuernos limados hasta el muñón",
+        "una cola que contesta antes que su dueño",
+        "ojos sin nada de blanco"
+      ],
+      dragonborn: [
+        "escamas opacas donde roza la armadura",
+        "una escama rajada que nunca reemplazó",
+        "un aliento que empaña el aire hasta en una sala tibia"
+      ],
+      gnome: [
+        "antiparras subidas a la frente y olvidadas ahí",
+        "cejas chamuscadas hace poco",
+        "pelo que se niega a reconocer la gravedad"
+      ]
+    },
+
+    /* ── Lo que hacen sin pensar ── */
+    quirks: {
+      any: [
+        "cuenta monedas mientras te habla",
+        "nunca se sienta de espaldas a una puerta",
+        "golpea dos veces la madera, y después una más",
+        "alimenta a todos los animales que se cruza",
+        "no come frente a desconocidos",
+        "mira por encima del hombro a mitad de frase",
+        "mantiene una mano sobre un bolsillo que está vacío",
+        "se sobresalta con las campanas",
+        "anota el nombre de todos los que conoce",
+        "se niega a decir adiós",
+        "duerme con una lámpara encendida y lo niega",
+        "colecciona botones de los muertos"
+      ],
+      guard: [
+        "saluda por reflejo, y después se arrepiente",
+        "no toma un trago de servicio, toma dos al salir",
+        "recuerda todas las caras y ningún nombre"
+      ],
+      bandit: [
+        "cuenta las salidas al entrar",
+        "nunca carga lo que no pueda soltar para salir corriendo",
+        "paga la primera ronda, siempre"
+      ],
+      warrior: [
+        "afila una hoja que ya está afilada",
+        "come de pie",
+        "no acepta la cama"
+      ],
+      cleric: [
+        "les pide perdón a los objetos que rompe",
+        "ayuna en días que nadie más observa",
+        "bendice a los muertos de ambos bandos"
+      ],
+      wizard: [
+        "verifica cada rumor con un truco",
+        "no toca hierro sin guantes",
+        "toma notas durante las discusiones"
+      ],
+      occultist: [
+        "le habla al fuego",
+        "entierra lo que no usa",
+        "no cruza agua corriente después del anochecer"
+      ],
+      human: [
+        "jura por cosas en las que no cree",
+        "menciona cuánto hace que vive aquí sin que nadie pregunte"
+      ],
+      elf: [
+        "espera tres latidos antes de cada respuesta",
+        "lleva la cuenta exacta de los favores que le deben"
+      ],
+      dwarf: [
+        "no bebe de nada que no haya visto servir",
+        "golpea la piedra antes de confiar en ella"
+      ],
+      halfling: [
+        "nombra las comidas del día y espera que le sigas el ritmo",
+        "esconde comida para después, siempre"
+      ],
+      orc: [
+        "da la mano tan fuerte que es una prueba",
+        "se pone de pie cada vez que alguien más se levanta"
+      ],
+      tiefling: [
+        "se sienta donde pueda vigilar toda la sala",
+        "no se deja agradecer"
+      ],
+      dragonborn: [
+        "no miente, así que no dice nada",
+        "salda una deuda antes de que recuerdes que existe"
+      ],
+      gnome: [
+        "desarma cualquier cosa que dejen sin vigilar",
+        "contesta una pregunta que hiciste ayer"
+      ]
+    },
+
+    /* ── Por qué te hablan: la razón para interpretarlos ── */
+    hooks: {
+      any: [
+        "necesita que alguien le lea una carta, y no va a admitir por qué",
+        "te confunde con otra persona y está encantado con eso",
+        "quiere venderte algo que no es suyo",
+        "espera a alguien que no va a venir",
+        "le debe dinero a la última persona con la que hablaste",
+        "quiere saber si estás contratando, sin preguntarlo",
+        "vio algo anoche y necesita un testigo",
+        "busca a un niño que no está perdido",
+        "quiere tu opinión sobre una decisión ya tomada",
+        "necesita un favor tan pequeño que obviamente no lo es",
+        "lo están siguiendo y le vendría bien compañía",
+        "reconoce tu arma, pero no a ti"
+      ],
+      guard: [
+        "necesita que alguien de afuera investigue lo que la guardia no quiere tocar",
+        "está cubriendo a un colega y eso lo está aplastando",
+        "quiere que te vayas antes de que termine su turno",
+        "tiene órdenes que decidió en silencio no cumplir",
+        "sabe quién fue y no puede probarlo"
+      ],
+      bandit: [
+        "quiere venderte de vuelta tu propia bolsa",
+        "ofrece un trabajo que es técnicamente legal",
+        "está harto de esta vida y necesita una salida",
+        "conoce un atajo, y cuesta caro",
+        "está probando si siquiera lo notarías"
+      ],
+      warrior: [
+        "busca una pelea que pueda perder con honor",
+        "quiere que alguien lleve un nombre de vuelta a casa",
+        "tiene una deuda de sangre, todavía impaga",
+        "custodia algo que no le dijeron qué es",
+        "quiere enseñarle a alguien antes de que sea tarde"
+      ],
+      cleric: [
+        "necesita que un pecado salga del pueblo",
+        "está perdiendo la fe y pone a prueba la tuya",
+        "quiere un entierro bien hecho, y en silencio",
+        "carga una confesión que no le corresponde hacer",
+        "está seguro de que te enviaron"
+      ],
+      wizard: [
+        "quiere un componente que casualmente llevas encima",
+        "necesita un testigo de algo que no funcionó",
+        "persigue al dueño anterior de un libro",
+        "ofrece conocimiento en lugar de pago",
+        "necesita que alguien que no sepa leer sostenga una página"
+      ],
+      occultist: [
+        "tiene una advertencia que no quieres escuchar",
+        "necesita devolver algo al lugar donde fue encontrado",
+        "sigue una señal y tú estás parado justo encima de ella",
+        "quiere refugio por una noche y nada más",
+        "sabe qué hay debajo del pueblo"
+      ]
+    }
   }
 };
 
@@ -350,8 +661,8 @@ function pool(table, archetype, race) {
  * @returns {{mannerism:string, appearance:string, quirk:string, hook:string}}
  */
 export function generateFlavor({ archetype = "guard", race = "human", lang = "en" } = {}) {
-  // Falls back to English until other languages land: a missing table should
-  // never leave the biography empty.
+  // ES y EN completos desde v2.2; cualquier idioma desconocido cae a EN para
+  // que una tabla ausente nunca deje la biografía vacía.
   const T = FLAVOR[lang] ?? FLAVOR.en;
   const of = (key) => {
     const table = T[key] ?? FLAVOR.en[key];
@@ -371,17 +682,14 @@ export function generateFlavor({ archetype = "guard", race = "human", lang = "en
  * Lands in system.details.biography.value, which means GG Sheet Export picks it
  * up and prints it in the PDF / HTML / Markdown exports for free.
  */
-export function flavorToBiography(flavor, { occupation = "", trait = "" } = {}) {
-  const L = (k) => game.i18n.localize(`GGNF.Flavor.${k}`);
+export function flavorToBiography(flavor, { lang = "en" } = {}) {
   const line = (label, value) => (value ? `<li><strong>${label}:</strong> ${value}</li>` : "");
-  const head = [occupation, trait].filter(Boolean).join(" · ");
   return [
-    head ? `<p><em>${head}</em></p>` : "",
     "<ul>",
-    line(L("Looks"), flavor.appearance),
-    line(L("Speaks"), flavor.mannerism),
-    line(L("Quirk"), flavor.quirk),
-    line(L("Wants"), flavor.hook),
+    line(genT(lang, "looks"),  flavor.appearance),
+    line(genT(lang, "speaks"), flavor.mannerism),
+    line(genT(lang, "quirk"),  flavor.quirk),
+    line(genT(lang, "wants"),  flavor.hook),
     "</ul>"
-  ].filter(Boolean).join("\n");
+  ].join("\n");
 }

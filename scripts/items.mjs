@@ -41,7 +41,7 @@ const ITEM_DATA = {
     effects: ["las Brasas", "las Mareas", "los Susurros", "la Estrella Caída", "las Tormentas", "las Profundidades", "la Ceniza", "el Primer Alba", "el Silencio", "el Wyrm", "la Escarcha", "el Velo", "las Espinas", "la Luna"],
     // Formato rumor: "Dicen que ..." — todas arrancan con verbo conjugado.
     rumorPrefix: "Dicen que",
-    flavors: ["es levemente cálido al tacto", "zumba cuando el peligro acecha", "susurra nombres de los muertos", "deja escarcha sobre lo que toca", "brilla más en la oscuridad", "pesa más cuando mientes", "huele a lluvia y piedra vieja", "muestra breves visiones del pasado", "nunca está donde lo dejaste", "se enfría cerca de los indignos", "fue sacado de un lecho de río que ningún mapa muestra", "perteneció a alguien que murió dos veces", "se niega a juntar polvo", "proyecta su sombra un latido tarde", "sabe a cobre si lo besás, y hay quien lo hace", "fue enterrado con su artesano, por poco tiempo", "atrae polillas a plena luz del día", "se vendió siete veces y volvió seis"]
+    flavors: ["es levemente cálido al tacto", "zumba cuando el peligro acecha", "susurra nombres de los muertos", "deja escarcha sobre lo que toca", "brilla más en la oscuridad", "pesa más cuando mientes", "huele a lluvia y piedra vieja", "muestra breves visiones del pasado", "nunca está donde lo dejaste", "se enfría cerca de los indignos", "fue sacado de un lecho de río que ningún mapa muestra", "perteneció a alguien que murió dos veces", "se niega a juntar polvo", "proyecta su sombra un latido tarde", "sabe a cobre si lo besas, y hay quien lo hace", "fue enterrado con su artesano, por poco tiempo", "atrae polillas a plena luz del día", "se vendió siete veces y volvió seis"]
   }
 };
 

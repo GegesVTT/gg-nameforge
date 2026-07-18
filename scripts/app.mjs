@@ -8,15 +8,9 @@ const MODULE_ID = "gg-nameforge";
 import { generateNPC, RACES, CR_KEYS } from "./npc.mjs";
 import { generateItem } from "./items.mjs";
 import { createNPCActor, createMagicItem } from "./foundry-create.mjs";
+import { resolveLang } from "./i18n.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
-
-/** Read the language override setting, else follow Foundry's UI language. */
-function resolveLang() {
-  const override = game.settings.get(MODULE_ID, "language");
-  if (override === "es" || override === "en") return override;
-  return game.i18n.lang === "es" ? "es" : "en";
-}
 
 export class NameforgeApp extends HandlebarsApplicationMixin(ApplicationV2) {
   #mode     = "npc";          // "npc" | "item" | "favorites"

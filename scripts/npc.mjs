@@ -109,6 +109,7 @@ export async function generateNPC({
     surname,
     race,
     gender,
+    lang,
     archetype,
     cr,
     kind: "npc",

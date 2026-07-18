@@ -15,13 +15,14 @@ import { flavorToBiography, generateFlavor } from "./flavor-tables.mjs";
 import { buildSpellbook } from "./spellbook.mjs";
 import { sanitizeEmbeddedItems, applyRacialLayer, physicalCategory, CATEGORY_FOR_TYPE, leadingNoun, slugify } from "./reskin.mjs";
 import { rebuildItemName } from "./items.mjs";
+import { resolveLang, genT, raceLabel, archLabelOf } from "./i18n.mjs";
+import { pickFallbackArt } from "./prototypes.mjs";
 
 /** "1/4" en vez de "0.25" en notificaciones. */
 const crLabel = (n) => ({ 0.125: "1/8", 0.25: "1/4", 0.5: "1/2" }[n] ?? String(n));
 const escRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const raceLabelOf = (race) => {
-  try { return game.i18n.localize(`GGNF.Race.${race}`); } catch { return race; }
-};
+/** ¿El actor tiene arte real, o el placeholder del sistema? */
+const hasRealArt = (src) => !!src && !src.endsWith(".svg") && !src.includes("mystery-man");
 
 
 const MODULE_ID = "gg-nameforge";
@@ -97,12 +98,16 @@ export async function createNPCActor(npc) {
   const crKey      = npc.cr         ?? "cr1";
   const name       = npc.name       ?? game.i18n.localize("GGNF.Fallback.Name");
 
-  const archLabel = game.i18n.localize(`GGNF.Arch.${archetype}`);
-  const bio = game.i18n.format("GGNF.Actor.Bio", { race, occupation, trait });
+  // Idioma del CONTENIDO: el que se usó para generar el descriptor (o el
+  // setting del módulo), no el de la interfaz de Foundry. Un DM con Foundry
+  // en inglés puede crear PNJs enteramente en español.
+  const lang = npc.lang ?? resolveLang();
+  const archLabel = archLabelOf(lang, archetype);
+  const bio = genT(lang, "bio", { race: raceLabel(lang, race), occupation, trait });
   // El sabor va a la biografía del actor, así que GG Sheet Export lo levanta
   // solo y lo imprime en el PDF, el HTML y el Markdown. Sin acoplar los módulos.
-  const flavor = npc.flavor ?? generateFlavor({ archetype, race, lang: game.i18n.lang });
-  const flavorHTML = flavorToBiography(flavor, { occupation, trait });
+  const flavor = npc.flavor ?? generateFlavor({ archetype, race, lang });
+  const flavorHTML = flavorToBiography(flavor, { lang });
 
   /* ── Prototipo oficial ──────────────────────────────────────────────
      El descriptor ya eligió el stat block (generateNPC lo hace, así la tarjeta
@@ -131,7 +136,7 @@ export async function createNPCActor(npc) {
 
         // Capa racial mínima: idiomas + sentidos + units normalizadas.
         // (La ruta actors24 dejaba movement.units y senses.units en null.)
-        applyRacialLayer(data.system, race, raceLabelOf(race));
+        applyRacialLayer(data.system, race, raceLabel(lang, race));
 
         /* Refuerzo de spellbook: si pediste un lanzador de CR mayor al del
            stat block más cercano, se extienden slots y conjuros hasta el nivel
@@ -169,8 +174,25 @@ export async function createNPCActor(npc) {
           }
         }
 
+        // actors24 deja spellcasting en "str" incluso en marciales sin un solo
+        // conjuro (probe de Garoorbek): limpiarlo.
+        if (npc.combatKind !== "caster"
+            && !(data.items ?? []).some((i) => i.type === "spell")
+            && data.system.attributes?.spellcasting === "str") {
+          data.system.attributes.spellcasting = "";
+        }
+
+        // Token de respaldo: algunos prototipos (Tough Boss) vienen sin arte.
+        if (!hasRealArt(data.img)) {
+          const art = await pickFallbackArt({ race, kind: npc.combatKind ?? "martial" });
+          if (art) {
+            data.img = art;
+            foundry.utils.setProperty(data, "prototypeToken.texture.src", art);
+          }
+        }
+
         const bioTag = boosted
-          ? `${npc.prototype.name} · CR ${crLabel(npc.prototype.cr)} · ${game.i18n.format("GGNF.Actor.BioBoost", { cr: crLabel(finalCR) })}`
+          ? `${npc.prototype.name} · CR ${crLabel(npc.prototype.cr)} · ${genT(lang, "bioBoost", { cr: crLabel(finalCR) })}`
           : `${npc.prototype.name} · CR ${crLabel(npc.prototype.cr)}`;
         foundry.utils.setProperty(data, "system.details.biography.value",
           `<p>${bio}</p>\n${flavorHTML}\n<p><em>${bioTag}</em></p>`);
@@ -226,7 +248,14 @@ export async function createNPCActor(npc) {
   abilKeys.forEach((ab, i) => { abilities[ab] = { value: profile[i] }; });
 
   const dexMod = mod(profile[1]);
-  const hp = randInt(tier.hp[0], tier.hp[1]);
+  const conMod = mod(profile[2]);
+  /* HP con fórmula de dados, como un stat block de verdad: se elige la cantidad
+     de d8 que aproxima el objetivo del tier y el HP pasa a ser el promedio.
+     Antes quedaba un número pelado (192 sin fórmula, probe de Tarhun). */
+  const hpTarget = randInt(tier.hp[0], tier.hp[1]);
+  const nDice = Math.max(1, Math.round(hpTarget / (4.5 + conMod)));
+  const hpFormula = conMod ? `${nDice}d8 ${conMod > 0 ? "+" : "-"} ${Math.abs(nDice * conMod)}` : `${nDice}d8`;
+  const hp = Math.max(1, Math.floor(nDice * 4.5 + nDice * conMod));
   const ac = baseAC(archetype, dexMod);
   const defenses = buildDefenses(archetype, tier);
 
@@ -270,11 +299,11 @@ export async function createNPCActor(npc) {
     system: {
       abilities,
       ...(casterAbility ? { attributes: {
-        hp: { value: hp, max: hp },
+        hp: { value: hp, max: hp, formula: hpFormula },
         ac: { flat: ac, calc: "flat" },
         spellcasting: casterAbility
       }, spells } : { attributes: {
-        hp: { value: hp, max: hp },
+        hp: { value: hp, max: hp, formula: hpFormula },
         ac: { flat: ac, calc: "flat" }
       } }),
       details: {
@@ -298,7 +327,17 @@ export async function createNPCActor(npc) {
   };
 
   // Capa racial + normalización (movement/senses en ft, idiomas, raza).
-  applyRacialLayer(data.system, race, raceLabelOf(race));
+  applyRacialLayer(data.system, race, raceLabel(lang, race));
+
+  // Arte: la ruta generada quedaba con el npc.svg pelado. Se toma prestado el
+  // token de un humanoide oficial acorde al rol y la raza.
+  {
+    const art = await pickFallbackArt({ race, kind: npc.combatKind ?? (arch.caster ? "caster" : "martial") });
+    if (art) {
+      data.img = art;
+      data.prototypeToken = { texture: { src: art } };
+    }
+  }
 
   try {
     const actor = await Actor.create(data);
@@ -393,6 +432,13 @@ export async function createMagicItem(item) {
       obj.system = obj.system ?? {};
       obj.system.description = { value: `<p><em>${flavor}</em></p><hr>${prevDesc}` };
       if (obj.system.identifier) obj.system.identifier = slugify(finalName);
+      // Los ActiveEffects heredan el nombre del ítem original ("Belt of Fire
+      // Giant Strength" dentro del Belt of Storms, probe real): renombrarlos.
+      for (const ef of obj.effects ?? []) {
+        if (ef?.name && srd.name && ef.name.toLowerCase().includes(srd.name.toLowerCase())) {
+          ef.name = finalName;
+        }
+      }
       // baseItem queda en flags: solo el GM inspecciona flags, y sirve para depurar.
       obj.flags = { ...(obj.flags ?? {}), [MODULE_ID]: { generated: true, reskinned: true, baseItem: srd.name } };
       try {
