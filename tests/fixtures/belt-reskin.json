@@ -1,0 +1,148 @@
+{
+  "name": "Belt of Storms",
+  "type": "equipment",
+  "img": "https://assets.forge-vtt.com/bazaar/core/icons/equipment/waist/belt-coiled-leather-steel.webp",
+  "system": {
+    "description": {
+      "value": "<p><em>They say it attracts moths in broad daylight.</em></p><hr /><p><em>Wondrous item (requires attunement)</em></p><p>While wearing this belt, your Strength score changes to 25. If your Strength is already equal to or greater than the belt's score, the item has no effect on you.</p>",
+      "chat": ""
+    },
+    "source": {
+      "custom": "",
+      "book": "",
+      "page": "",
+      "license": "CC-BY-4.0",
+      "rules": "2014",
+      "revision": 1
+    },
+    "quantity": 1,
+    "weight": {
+      "value": 1,
+      "units": "lb"
+    },
+    "price": {
+      "value": 40000,
+      "denomination": "gp"
+    },
+    "attunement": "required",
+    "equipped": false,
+    "rarity": "veryRare",
+    "identified": true,
+    "cover": null,
+    "uses": {
+      "max": "",
+      "spent": 0,
+      "recovery": []
+    },
+    "armor": {
+      "value": 0,
+      "dex": 0,
+      "magicalBonus": null
+    },
+    "hp": {
+      "value": 0,
+      "max": 0,
+      "dt": null,
+      "conditions": ""
+    },
+    "speed": {
+      "value": null,
+      "conditions": "",
+      "units": "ft"
+    },
+    "strength": null,
+    "proficient": null,
+    "type": {
+      "value": "wondrous",
+      "baseItem": ""
+    },
+    "unidentified": {
+      "description": ""
+    },
+    "container": null,
+    "properties": [
+      "mgc"
+    ],
+    "activities": {},
+    "attuned": false,
+    "identifier": "belt-of-storms",
+    "crew": {
+      "value": []
+    }
+  },
+  "effects": [
+    {
+      "origin": "Compendium.dnd5e.items.bq9YKwEHLQ7p7ric",
+      "duration": {
+        "startTime": null,
+        "seconds": null,
+        "combat": null,
+        "rounds": null,
+        "turns": null,
+        "startRound": null,
+        "startTurn": null
+      },
+      "disabled": false,
+      "_id": "bOonopsHKkewV29S",
+      "changes": [
+        {
+          "key": "system.abilities.str.value",
+          "mode": 4,
+          "value": "25",
+          "priority": null
+        }
+      ],
+      "tint": "#ffffff",
+      "transfer": true,
+      "flags": {},
+      "name": "Belt of Fire Giant Strength",
+      "description": "",
+      "statuses": [],
+      "_stats": {
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null,
+        "coreVersion": "13.351",
+        "systemId": "dnd5e",
+        "systemVersion": "5.2.4",
+        "lastModifiedBy": null
+      },
+      "img": "icons/equipment/waist/belt-coiled-leather-steel.webp",
+      "type": "base",
+      "system": {},
+      "sort": 0
+    }
+  ],
+  "flags": {
+    "gg-nameforge": {
+      "generated": true,
+      "reskinned": true,
+      "baseItem": "Belt of Fire Giant Strength"
+    },
+    "scene-packer": {
+      "hash": "378adba0701534d7512c4244da97b916f7c11cbb",
+      "sourceId": "Item.FZ5nwilPODjgfiI9"
+    }
+  },
+  "_stats": {
+    "duplicateSource": null,
+    "exportSource": {
+      "worldId": "cronicas-de-un-vecna",
+      "uuid": "Item.FZ5nwilPODjgfiI9",
+      "coreVersion": "13.351",
+      "systemId": "dnd5e",
+      "systemVersion": "5.2.4"
+    },
+    "compendiumSource": null,
+    "coreVersion": "13.351",
+    "systemId": "dnd5e",
+    "systemVersion": "5.2.4",
+    "createdTime": 1784407374288,
+    "modifiedTime": 1784407374288,
+    "lastModifiedBy": "MWUwMWVkZmQ3ZmE5"
+  },
+  "folder": null,
+  "ownership": {
+    "default": 0
+  }
+}

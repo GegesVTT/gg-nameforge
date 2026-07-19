@@ -31,6 +31,7 @@ const STRINGS = {
     bio: "A {race} {occupation}, {trait}.",
     looks: "Looks", speaks: "Speaks", quirk: "Quirk", wants: "Wants",
     bioBoost: "spellbook reinforced to CR {cr}",
+    promoted: "promoted to CR {cr}",
     race: {
       human: "Human", elf: "Elf", dwarf: "Dwarf", halfling: "Halfling",
       orc: "Orc", tiefling: "Tiefling", dragonborn: "Dragonborn", gnome: "Gnome"
@@ -46,6 +47,7 @@ const STRINGS = {
     bio: "{race} · {occupation} · {trait}.",
     looks: "Aspecto", speaks: "Habla", quirk: "Manía", wants: "Quiere",
     bioBoost: "libro de conjuros reforzado hasta CR {cr}",
+    promoted: "promovido a CR {cr}",
     race: {
       human: "Humano", elf: "Elfo", dwarf: "Enano", halfling: "Mediano",
       orc: "Orco", tiefling: "Tiflin", dragonborn: "Dracónido", gnome: "Gnomo"

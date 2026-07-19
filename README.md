@@ -86,7 +86,10 @@ await api.createNPC({ archetype: "bandit", cr: "cr1" });  // full actor
 ## 🛠️ Technical notes
 
 - **Nothing is hardcoded to a specific compendium.** The kit discovers Item packs at runtime and indexes them once per session, so it works with the SRD, with your homebrew packs, and with whatever you install later.
+- **Quick NPC**: one keystroke (Ctrl+Shift+N, editable) or the bolt button on the token controls creates a complete NPC instantly — random race and role, CR auto-scaled to the party's average level, sheet opened. For the moment the players walk into the tavern and ask the keeper's name while looking at you.
+- **Promote**: right-click any Nameforge NPC in the actor directory to regenerate its stat block at a higher CR while preserving name, portrait, token, biography and quest items. For the improvised NPC your players adopted.
 - The **Language** setting drives generated content end to end: names, flavor tables (fully written in both English and Spanish), the actor biography and its labels — independent of Foundry's interface language. UI notifications stay in the interface language.
+- The repo ships a dependency-free test harness (`node tests/run.mjs`, Node 18+) with real world-export fixtures as probes; it runs on every push via GitHub Actions.
 - Spellcasters get a **coherent spellbook**: the requested CR sets caster level and real full-caster slots, each archetype pulls from a themed SRD list (an occultist curses, a cleric heals), an attack cantrip is always guaranteed, and no slot level is ever left without a spell. Worlds with translated compendiums fall back to level + school matching, which is language-independent.
 - Creature features come from `dnd5e.monsterfeatures` as real feat items, so they carry their own descriptions and mechanics.
 - NPC casters get their casting ability and spell slot overrides set, so embedded spells are actually castable rather than decorative.
@@ -178,7 +181,10 @@ await api.createNPC({ archetype: "bandit", cr: "cr1" });  // actor completo
 ### 🛠️ Notas técnicas
 
 - **Nada está atado a un compendio específico.** El kit descubre los packs de ítems en tiempo de ejecución y los indexa una vez por sesión: funciona con el SRD, con tus packs caseros y con lo que instales mañana.
+- **PNJ rápido**: un atajo (Ctrl+Shift+N, editable) o el botón del rayo en los controles de token crea un PNJ completo al instante — raza y rol al azar, CR escalado al nivel promedio del grupo, ficha abierta. Para el momento en que los jugadores entran a la taberna y preguntan el nombre del tabernero mientras te miran.
+- **Promover**: click derecho sobre cualquier PNJ de Nameforge en el directorio de actores para regenerar su stat block a un CR mayor conservando nombre, retrato, token, biografía y objetos de misión. Para el PNJ improvisado que tus jugadores adoptaron.
 - El ajuste de **Idioma** manda sobre todo el contenido generado: nombres, tablas de sabor (escritas completas en inglés y en español), la biografía del actor y sus etiquetas — independiente del idioma de la interfaz de Foundry. Las notificaciones siguen el idioma de la interfaz.
+- El repo incluye un harness de pruebas sin dependencias (`node tests/run.mjs`, Node 18+) con exports reales de mundo como fixtures; corre en cada push vía GitHub Actions.
 - Los lanzadores reciben un **libro de conjuros coherente**: el CR pedido fija el nivel de lanzador y los slots reales de lanzador completo, cada arquetipo bebe de una lista temática del SRD (el ocultista maldice, el clérigo cura), siempre hay un truco de ataque garantizado y ningún nivel de slot queda sin conjuro. Los mundos con compendios traducidos degradan al emparejamiento por nivel + escuela, que es independiente del idioma.
 - Los rasgos de criatura salen de `dnd5e.monsterfeatures` como ítems `feat` reales, así que traen su propia descripción y mecánicas.
 - Los PNJ lanzadores reciben característica de lanzamiento y espacios de conjuro configurados: los conjuros embebidos se pueden lanzar de verdad, no son decoración.

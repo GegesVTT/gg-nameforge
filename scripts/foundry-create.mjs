@@ -19,7 +19,7 @@ import { resolveLang, genT, raceLabel, archLabelOf } from "./i18n.mjs";
 import { pickFallbackArt } from "./prototypes.mjs";
 
 /** "1/4" en vez de "0.25" en notificaciones. */
-const crLabel = (n) => ({ 0.125: "1/8", 0.25: "1/4", 0.5: "1/2" }[n] ?? String(n));
+export const crLabel = (n) => ({ 0.125: "1/8", 0.25: "1/4", 0.5: "1/2" }[n] ?? String(n));
 const escRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 /** ¿El actor tiene arte real, o el placeholder del sistema? */
 const hasRealArt = (src) => !!src && !src.endsWith(".svg") && !src.includes("mystery-man");
@@ -84,6 +84,84 @@ function baseAC(archetypeKey, dexMod) {
   }
 }
 
+/**
+ * Pipeline de revestido sobre un prototipo oficial: clonar, sanitizar,
+ * capa racial, refuerzo de spellbook, limpieza y arte de respaldo.
+ * Compartido por la creación (createNPCActor) y la PROMOCIÓN de un PNJ
+ * existente (quick.mjs) — mismo camino, cero duplicación.
+ * @returns {{data: object, finalCR: number, boosted: boolean, reqCR: number}}
+ */
+export async function buildPrototypeActorData({
+  protoDoc, protoName, protoCR, name, given, lang, race, archetype, crKey, kind
+}) {
+  const data = protoDoc.toObject();
+  delete data._id;
+  delete data.folder;
+  data.name = name;
+  foundry.utils.setProperty(data, "prototypeToken.name", name);
+
+  /* Sanitización: los ítems de los packs de 2014 nombran al PNJ original
+     ("The captain makes three melee attacks") y delatan el reskin en el
+     chat. Los de 2024 usan [[lookup @name lowercase]] y no lo necesitan. */
+  sanitizeEmbeddedItems(data.items, protoName, given);
+
+  // Capa racial mínima: idiomas + sentidos + units normalizadas.
+  applyRacialLayer(data.system, race, raceLabel(lang, race));
+
+  /* Refuerzo de spellbook: si el CR pedido supera al del stat block más
+     cercano, se extienden slots y conjuros hasta el nivel de lanzador del CR
+     pedido. El CR declarado sube a mitad de camino: los conjuros son la mitad
+     de la ecuación ofensiva del DMG, no toda. */
+  const reqTier = CR_TIERS[crKey] ?? CR_TIERS.cr1;
+  let finalCR = protoCR;
+  let boosted = false;
+  if (kind === "caster" && reqTier.cr > protoCR) {
+    try {
+      const existing = new Set((data.items ?? [])
+        .filter((i) => i.type === "spell").map((i) => norm(i.name)));
+      const sb = await buildSpellbook({ archetype, crKey, excludeNames: existing });
+      if (sb?.docs?.length) {
+        for (const d of sb.docs) data.items.push(d.toObject());
+        data.system.spells ??= {};
+        for (const [k, v] of Object.entries(sb.slots)) {
+          const cur = data.system.spells[k] ?? {};
+          const curMax = Math.max(Number(cur.max) || 0, Number(cur.override) || 0);
+          if (v.max > curMax) data.system.spells[k] = v;
+        }
+        // actors24 deja spellcasting en "str" por defecto: corregir.
+        const cast = data.system.attributes?.spellcasting;
+        if (!cast || cast === "str") {
+          foundry.utils.setProperty(data, "system.attributes.spellcasting", sb.ability);
+        }
+        finalCR = Math.min(reqTier.cr, protoCR + Math.ceil((reqTier.cr - protoCR) / 2));
+        foundry.utils.setProperty(data, "system.details.cr", finalCR);
+        boosted = true;
+      }
+    } catch (e) {
+      console.warn(`${MODULE_ID} | no pude reforzar el spellbook:`, e);
+    }
+  }
+
+  // actors24 deja spellcasting en "str" incluso en marciales sin un solo
+  // conjuro (probe de Garoorbek): limpiarlo.
+  if (kind !== "caster"
+      && !(data.items ?? []).some((i) => i.type === "spell")
+      && data.system.attributes?.spellcasting === "str") {
+    data.system.attributes.spellcasting = "";
+  }
+
+  // Token de respaldo: algunos prototipos (Tough Boss) vienen sin arte.
+  if (!hasRealArt(data.img)) {
+    const art = await pickFallbackArt({ race, kind: kind ?? "martial" });
+    if (art) {
+      data.img = art;
+      foundry.utils.setProperty(data, "prototypeToken.texture.src", art);
+    }
+  }
+
+  return { data, finalCR, boosted, reqCR: reqTier.cr };
+}
+
 export async function createNPCActor(npc) {
   if (!npc || typeof npc !== "object") return null;
   if (!game.user.can("ACTOR_CREATE")) {
@@ -122,74 +200,11 @@ export async function createNPCActor(npc) {
       const hit = idx ? [...idx].find((e) => e.name === npc.prototype.name) : null;
       const proto = hit ? await pack.getDocument(hit._id) : null;
       if (proto) {
-        const data = proto.toObject();
-        delete data._id;
-        delete data.folder;
-        data.name = name;
-        foundry.utils.setProperty(data, "prototypeToken.name", name);
-
-        /* Sanitización: los ítems de los packs de 2014 nombran al PNJ original
-           ("The captain makes three melee attacks") y delatan el reskin en el
-           chat. Los de 2024 usan [[lookup @name lowercase]] y no lo necesitan. */
         const given = npc.given ?? name.split(/\s+/)[0];
-        sanitizeEmbeddedItems(data.items, npc.prototype.name, given);
-
-        // Capa racial mínima: idiomas + sentidos + units normalizadas.
-        // (La ruta actors24 dejaba movement.units y senses.units en null.)
-        applyRacialLayer(data.system, race, raceLabel(lang, race));
-
-        /* Refuerzo de spellbook: si pediste un lanzador de CR mayor al del
-           stat block más cercano, se extienden slots y conjuros hasta el nivel
-           de lanzador del CR pedido — sube la competencia sin tocar la base.
-           El CR declarado sube a mitad de camino: los conjuros son la mitad
-           de la ecuación ofensiva del DMG, no toda. */
-        const reqTier = CR_TIERS[crKey] ?? CR_TIERS.cr1;
-        let finalCR = npc.prototype.cr;
-        let boosted = false;
-        if (npc.combatKind === "caster" && reqTier.cr > npc.prototype.cr) {
-          try {
-            const existing = new Set((data.items ?? [])
-              .filter((i) => i.type === "spell").map((i) => norm(i.name)));
-            const sb = await buildSpellbook({ archetype, crKey, excludeNames: existing });
-            if (sb?.docs?.length) {
-              for (const d of sb.docs) data.items.push(d.toObject());
-              data.system.spells ??= {};
-              for (const [k, v] of Object.entries(sb.slots)) {
-                const cur = data.system.spells[k] ?? {};
-                const curMax = Math.max(Number(cur.max) || 0, Number(cur.override) || 0);
-                if (v.max > curMax) data.system.spells[k] = v;
-              }
-              // actors24 deja spellcasting en "str" por defecto: corregir.
-              const cast = data.system.attributes?.spellcasting;
-              if (!cast || cast === "str") {
-                foundry.utils.setProperty(data, "system.attributes.spellcasting", sb.ability);
-              }
-              finalCR = Math.min(reqTier.cr,
-                npc.prototype.cr + Math.ceil((reqTier.cr - npc.prototype.cr) / 2));
-              foundry.utils.setProperty(data, "system.details.cr", finalCR);
-              boosted = true;
-            }
-          } catch (e) {
-            console.warn(`${MODULE_ID} | no pude reforzar el spellbook:`, e);
-          }
-        }
-
-        // actors24 deja spellcasting en "str" incluso en marciales sin un solo
-        // conjuro (probe de Garoorbek): limpiarlo.
-        if (npc.combatKind !== "caster"
-            && !(data.items ?? []).some((i) => i.type === "spell")
-            && data.system.attributes?.spellcasting === "str") {
-          data.system.attributes.spellcasting = "";
-        }
-
-        // Token de respaldo: algunos prototipos (Tough Boss) vienen sin arte.
-        if (!hasRealArt(data.img)) {
-          const art = await pickFallbackArt({ race, kind: npc.combatKind ?? "martial" });
-          if (art) {
-            data.img = art;
-            foundry.utils.setProperty(data, "prototypeToken.texture.src", art);
-          }
-        }
+        const { data, finalCR, boosted, reqCR } = await buildPrototypeActorData({
+          protoDoc: proto, protoName: npc.prototype.name, protoCR: npc.prototype.cr,
+          name, given, lang, race, archetype, crKey, kind: npc.combatKind ?? null
+        });
 
         const bioTag = boosted
           ? `${npc.prototype.name} · CR ${crLabel(npc.prototype.cr)} · ${genT(lang, "bioBoost", { cr: crLabel(finalCR) })}`
@@ -209,9 +224,9 @@ export async function createNPCActor(npc) {
         if (boosted) {
           ui.notifications.info(game.i18n.format("GGNF.Actor.SpellbookBoosted",
             { name, cr: crLabel(finalCR), base: crLabel(npc.prototype.cr) }));
-        } else if (finalCR !== reqTier.cr) {
+        } else if (finalCR !== reqCR) {
           ui.notifications.warn(game.i18n.format("GGNF.Actor.CRAdjusted",
-            { name, requested: crLabel(reqTier.cr), actual: crLabel(finalCR) }));
+            { name, requested: crLabel(reqCR), actual: crLabel(finalCR) }));
         }
         return actor;
       }
