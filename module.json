@@ -1,12 +1,16 @@
 {
   "id": "gg-nameforge",
   "title": "GG Nameforge",
-  "description": "Fast NPC and magic item generator for Foundry VTT. Culture-aware names, one-keystroke quick NPCs, NPC promotion that preserves identity, coherent CR-scaled spellbooks, stat block reskinning with anti-metagaming sanitization, and one-click actor/item creation for D&D 5e. Bilingual (EN/ES). By Geges.",
+  "description": "Fast NPC and magic item generator for Foundry VTT. Culture-aware names, one-keystroke quick NPCs, NPC promotion that preserves identity, coherent CR-scaled spellbooks, stat block reskinning with anti-metagaming sanitization, and one-click actor/item creation for D&D 5e. Bilingual (EN/ES). Part of Crónicas Bárdicas, the module suite by GegesVTT. — Generador rápido de PNJs e ítems mágicos: nombres por cultura, PNJs de una tecla, libros de conjuros coherentes escalados por VD y reskin de stat blocks. Parte de Crónicas Bárdicas, la suite de módulos de GegesVTT.",
   "version": "2.3.0",
   "authors": [
     {
       "name": "Geges",
-      "flags": {}
+      "url": "https://github.com/GegesVTT",
+      "flags": {
+        "brand": "GegesVTT",
+        "suite": "Crónicas Bárdicas"
+      }
     }
   ],
   "compatibility": {
@@ -37,7 +41,8 @@
   "url": "https://github.com/GegesVTT/gg-nameforge",
   "manifest": "https://github.com/GegesVTT/gg-nameforge/releases/latest/download/module.json",
   "download": "https://github.com/GegesVTT/gg-nameforge/releases/download/v2.3.0/module.zip",
-  "license": "MIT",
-  "readme": "https://github.com/GegesVTT/gg-nameforge#readme",
-  "bugs": "https://github.com/GegesVTT/gg-nameforge/issues"
+  "readme": "https://raw.githubusercontent.com/GegesVTT/gg-nameforge/main/README.md",
+  "bugs": "https://github.com/GegesVTT/gg-nameforge/issues",
+  "changelog": "https://github.com/GegesVTT/gg-nameforge/releases",
+  "license": "MIT"
 }
