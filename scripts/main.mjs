@@ -17,6 +17,41 @@ function getApp() {
   return _app;
 }
 
+/* ── Suite Crónicas Bárdicas (gg-wp) ─────────────────────────────────────────
+   Integración OPCIONAL, por feature-detection. Con gg-wp activo los botones
+   viven en la sección GGWP; sin él caen a Token Controls, como siempre.
+   Nunca es dependencia dura.
+
+   Se consulta en cada render porque getSceneControlButtons puede correr antes
+   de que gg-wp emita su hook ready. */
+function ggwpApi() {
+  const m = game.modules.get("gg-wp");
+  return (m?.active && m.api) ? m.api : null;
+}
+
+Hooks.once("gg-wp.ready", (api) => {
+  // Membresía explícita en la suite (el diálogo "Acerca de" lista esto).
+  api.registerModule(MODULE_ID);
+  // Botones de la sección GGWP. gg-wp garantiza onChange y el guard de
+  // activación: solo disparan con clic real, no al entrar a la sección.
+  api.registerTool({
+    name: "gg-nameforge",
+    title: game.i18n.localize("GGNF.OpenGenerator"),
+    icon: "fa-solid fa-feather-pointed",
+    order: 10,
+    button: true,
+    onChange: () => game.modules.get(MODULE_ID)?.api?.open()
+  });
+  api.registerTool({
+    name: "gg-nameforge-quick",
+    title: game.i18n.localize("GGNF.Quick.Button"),
+    icon: "fa-solid fa-bolt",
+    order: 11,
+    button: true,
+    onChange: () => game.modules.get(MODULE_ID)?.api?.quick()
+  });
+});
+
 Hooks.once("init", () => {
   // De dónde salen los stat blocks: los packs del SRD traen dos versiones del
   // mismo PNJ (Bandit Captain está en las dos) y cinco de las seis familias
@@ -95,8 +130,11 @@ Hooks.once("ready", () => {
 });
 
 // ── Scene control button (compatible v12-v14) ─────────────────────────────
+// Con gg-wp activo, los botones viven en la sección GGWP (los registró el hook
+// gg-wp.ready de arriba) y acá NO se duplican. Sin gg-wp, fallback a Tokens.
 Hooks.on("getSceneControlButtons", (controls) => {
   if (!game.user?.isGM) return;
+  if (ggwpApi()) return; // la sección GGWP ya tiene los botones; no duplicar
 
   const open = () => game.modules.get(MODULE_ID)?.api?.open();
   const tool = {
