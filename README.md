@@ -21,6 +21,8 @@
 
 <p align="center"><strong>English</strong> · <a href="#-español">Español</a></p>
 
+<p align="center"><a href="https://bardica.ar"><strong>bardica.ar</strong></a> · more free GM tools · más herramientas gratis</p>
+
 ---
 
 A player walks up to the tavern keeper you never named. GG Nameforge gives you a name, a face and a stat block before the silence gets awkward.
@@ -210,3 +212,13 @@ Parte de **Crónicas Bárdicas**, la suite de módulos para Foundry VTT de Geges
 ---
 
 <p align="center"><em>GG Nameforge · GegesVTT · Crónicas Bárdicas</em></p>
+
+---
+
+<p align="center">
+  Made by <strong>Bárdica</strong> — free tools, printable cards and daily games for GMs,
+  in Spanish and English.<br>
+  Hecho por <strong>Bárdica</strong> — herramientas gratis, cartas imprimibles y juegos
+  diarios para directores.<br>
+  <a href="https://bardica.ar"><strong>bardica.ar</strong></a>
+</p>
