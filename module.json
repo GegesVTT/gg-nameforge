@@ -1,12 +1,13 @@
 {
   "id": "gg-nameforge",
   "title": "GG Nameforge",
-  "description": "\"What's the innkeeper's name?\" — \"…Bob.\" Nameforge fixes that: culture-aware names, one-keystroke quick NPCs, promotion to full actors that preserves the identity you already improvised, CR-coherent spellbooks and stat block reskinning with anti-metagaming sanitization for D&D 5e. Bilingual EN/ES. Part of Crónicas Bárdicas by GegesVTT — more free GM tools at https://bardica.ar — Generador de PNJs e ítems: nombres por cultura, PNJs de una tecla, libros de conjuros escalados por VD y reskin de stat blocks sin cantar la respuesta.",
-  "version": "2.3.1",
+  "description": "\"What's the innkeeper's name?\" — \"…Bob.\" Nameforge fixes that: culture-aware names, one-keystroke quick NPCs, promotion to full actors that preserves the identity you already improvised, CR-coherent spellbooks and stat block reskinning with anti-metagaming sanitization for D&D 5e. Bilingual EN/ES. · ES — Generador de PNJs e ítems: nombres por cultura, PNJs de una tecla, libros de conjuros escalados por VD y reskin de stat blocks sin cantar la respuesta. · Crónicas Bárdicas by GegesVTT — more free GM tools at https://bardica.ar",
+  "version": "2.3.2",
   "authors": [
     {
       "name": "Geges",
       "url": "https://bardica.ar/",
+      "discord": "Gesu7",
       "flags": {
         "brand": "GegesVTT",
         "suite": "Crónicas Bárdicas"
@@ -40,7 +41,7 @@
   ],
   "url": "https://bardica.ar/",
   "manifest": "https://github.com/GegesVTT/gg-nameforge/releases/latest/download/module.json",
-  "download": "https://github.com/GegesVTT/gg-nameforge/releases/download/v2.3.1/module.zip",
+  "download": "https://github.com/GegesVTT/gg-nameforge/releases/download/v2.3.2/module.zip",
   "readme": "https://raw.githubusercontent.com/GegesVTT/gg-nameforge/main/README.md",
   "bugs": "https://github.com/GegesVTT/gg-nameforge/issues",
   "changelog": "https://github.com/GegesVTT/gg-nameforge/releases",
@@ -50,6 +51,16 @@
       "type": "cover",
       "url": "https://raw.githubusercontent.com/GegesVTT/gg-nameforge/main/docs/images/banner-nameforge.png",
       "caption": "GG Nameforge — Crónicas Bárdicas"
+    },
+    {
+      "type": "screenshot",
+      "url": "https://raw.githubusercontent.com/GegesVTT/gg-nameforge/main/docs/images/screenshot-npc.jpg",
+      "caption": "An NPC improvised on the spot — name, stat block and gear"
+    },
+    {
+      "type": "screenshot",
+      "url": "https://raw.githubusercontent.com/GegesVTT/gg-nameforge/main/docs/images/screenshot-detalles.jpg",
+      "caption": "Details written straight to the actor, ready to hand to the table"
     },
     {
       "type": "icon",

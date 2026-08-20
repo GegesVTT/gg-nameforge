@@ -207,7 +207,7 @@ generador de PNJ · generador de nombres · nombres aleatorios · nombres fantá
 
 MIT — © Geges
 
-Parte de **Crónicas Bárdicas**, la suite de módulos para Foundry VTT de Geges (Gonzalo Gesualdo): [GG Sheet Export](https://github.com/GegesVTT/gg-sheet-export) · [GG Encounter Lens](https://github.com/GegesVTT/gg-encounter-lens)
+Parte de **Crónicas Bárdicas**, la suite de módulos para Foundry VTT de Geges (Gonzalo Gesualdo): [GG Sheet Export](https://github.com/GegesVTT/gg-sheet-export) · [GG Encounter Lens](https://github.com/GegesVTT/gg-encounter-lens) · [GG Fog Scout](https://github.com/GegesVTT/gg-fog-scout)
 
 ---
 
